@@ -1,0 +1,16 @@
+# Dependencies and Next.js output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Local environment files (the sample file is committed)
+.env
+.env.*
+!.env.example
+
+# Logs and IDE files
+*.log
+.idea/
+.vscode/
+.DS_Store
