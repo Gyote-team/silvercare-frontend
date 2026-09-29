@@ -119,28 +119,25 @@ a { color: inherit; }
   overflow-y: auto;
   padding: 4px 12px 20px 20px;
   scrollbar-gutter: stable;
-  scrollbar-width: auto;
-  scrollbar-color: #78a9c9 #dcecf6;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(36, 55, 70, 0.28) transparent;
 }
 
 .screen-scroll::-webkit-scrollbar {
-  width: 12px;
+  width: 6px;
 }
 
 .screen-scroll::-webkit-scrollbar-track {
-  background: #dcecf6;
-  border-radius: 8px;
-  margin: 6px 2px 12px;
+  background: transparent;
 }
 
 .screen-scroll::-webkit-scrollbar-thumb {
-  background: #78a9c9;
-  border-radius: 8px;
-  border: 2px solid #dcecf6;
+  background: rgba(36, 55, 70, 0.28);
+  border-radius: 6px;
 }
 
 .screen-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--mid-green);
+  background: rgba(36, 55, 70, 0.42);
 }
 
 .screen-scroll.login-screen {
@@ -1197,6 +1194,146 @@ textarea.record-area {
 .brand-photo-wrap {
   width: 100%;
   margin: 8px 0 4px;
+}
+
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.document-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  text-decoration: none;
+}
+
+.document-list-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.document-list-main strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.document-list-main > span:last-child {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.document-list-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.document-arrow {
+  font-size: 24px;
+  color: var(--ink-soft);
+  line-height: 1;
+}
+
+.document-empty {
+  text-align: center;
+}
+
+.document-empty strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.document-empty p {
+  margin: 0;
+}
+
+.document-patient-options {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.document-back {
+  display: inline-block;
+  margin: 8px 0 14px;
+  color: var(--deep-green);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.document-detail-header h1,
+.document-detail-content h2,
+.document-section h2,
+.document-status-card h3 {
+  margin: 10px 0 6px;
+  color: var(--deep-green);
+}
+
+.document-detail-header h1 {
+  font-size: 20px;
+}
+
+.document-detail-header p,
+.document-status-card p {
+  margin: 4px 0;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+
+.document-detail-content p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.document-section h2 {
+  font-size: 17px;
+}
+
+.document-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.document-item:last-child {
+  border-bottom: none;
+}
+
+.document-item strong {
+  font-size: 13.5px;
+}
+
+.document-item > span {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.document-item small {
+  color: var(--mid-green);
+  font-size: 11.5px;
+  font-weight: 700;
 }
 
 .brand-logo-image {
