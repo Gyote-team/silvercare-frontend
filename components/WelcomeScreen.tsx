@@ -41,7 +41,7 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
   }
 
   return (
-    <PhoneFrame scrollClassName="login-screen">
+    <PhoneFrame scrollClassName="login-screen" showTopbar={false}>
       <div className="login-layout">
         <header className="welcome-copy">
           <BrandLogo photo />
