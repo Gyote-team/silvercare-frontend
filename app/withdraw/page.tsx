@@ -45,7 +45,7 @@ export default function WithdrawPage() {
   }
 
   return (
-    <PhoneFrame tab="home" chatLocked={me.role === "CAREGIVER"}>
+    <PhoneFrame tab="home" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <div className="page-title">회원 탈퇴</div>
       <p className="page-sub">{me.name} 님, 탈퇴하기 전에 아래 내용을 확인해 주세요.</p>
 
@@ -68,7 +68,7 @@ export default function WithdrawPage() {
       <button className="btn-primary btn-withdraw" type="button" disabled={!agreed || busy} onClick={withdraw}>
         {busy ? "탈퇴 처리 중…" : "탈퇴하기"}
       </button>
-      <Link className="btn-out withdraw-back" href="/home">
+      <Link className="btn-out withdraw-back" href="/account">
         돌아가기
       </Link>
     </PhoneFrame>

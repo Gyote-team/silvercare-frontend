@@ -386,18 +386,6 @@ a { color: inherit; }
   margin-top: 2px;
 }
 
-.header-logout {
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--ink-soft);
-  cursor: pointer;
-  padding: 7px 10px;
-  flex-shrink: 0;
-}
-
 .action-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -699,6 +687,123 @@ textarea.record-area {
   color: var(--ink-soft);
   margin: 8px 2px 16px;
   line-height: 1.5;
+}
+
+.account-menu {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.account-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid #fff;
+  background: var(--brand);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 0 0 1px var(--line);
+  cursor: pointer;
+}
+
+.account-avatar[aria-expanded="true"] {
+  box-shadow: 0 0 0 3px var(--pale-green), 0 0 0 4px var(--brand-soft);
+}
+
+.account-avatar.large {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 132px;
+  padding: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.account-item {
+  display: block;
+  width: 100%;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-item:hover,
+.account-item:focus-visible {
+  background: var(--pale-green);
+}
+
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.account-profile div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-profile strong {
+  font-size: 17px;
+  color: var(--deep-green);
+}
+
+.account-profile span:not(.account-avatar) {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.account-info {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.account-info div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.account-info dt {
+  color: var(--ink-soft);
+}
+
+.account-info dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.04em;
 }
 
 .account-withdraw-link {

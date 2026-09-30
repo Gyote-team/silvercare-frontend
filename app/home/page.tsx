@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { rememberAccount } from "@/lib/accountHint";
-import { api, API_BASE, type CareRelation } from "@/lib/api";
+import { api, type CareRelation } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
 function HomeBody() {
   const { me, loading } = useMe();
-  const router = useRouter();
   const params = useSearchParams();
   const [relations, setRelations] = useState<CareRelation[]>([]);
   const [inviteCode, setInviteCode] = useState("");
@@ -79,19 +78,6 @@ function HomeBody() {
     return () => window.clearInterval(timer);
   }, [me]);
 
-  async function logout() {
-    const ok = window.confirm("로그아웃하면 이 기기에서 로그인이 풀립니다. 로그아웃할까요?");
-    if (!ok) {
-      return;
-    }
-    await fetch(`${API_BASE}/logout`, {
-      method: "POST",
-      credentials: "include",
-      headers: { Accept: "application/json" }
-    });
-    router.replace("/login");
-  }
-
   async function requestLink(event: FormEvent) {
     event.preventDefault();
     try {
@@ -156,16 +142,13 @@ function HomeBody() {
   const err = params.get("error");
 
   return (
-    <PhoneFrame tab="home" chatLocked={caregiver}>
+    <PhoneFrame tab="home" chatLocked={caregiver} userName={me.name}>
       <div className="home-hero">
         <div className="home-header">
           <div className="greeting">
             안녕하세요
             <div className="greeting-row">
               <b>{me.name} 님</b>
-              <button className="header-logout" type="button" onClick={logout}>
-                로그아웃
-              </button>
             </div>
             {connected.map((row) => (
               <section key={row.id} className="bond-card">
@@ -329,10 +312,6 @@ function HomeBody() {
           <div className="mini-text"><b>생활 주의사항</b><span>계단 이용 시 난간 이용 권장</span></div>
         </div>
       </div>
-
-      <Link className="account-withdraw-link" href="/withdraw">
-        회원 탈퇴
-      </Link>
     </PhoneFrame>
   );
 }
