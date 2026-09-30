@@ -98,7 +98,7 @@ export default function AccountPage() {
       return;
     }
     try {
-      const rows = await api<CareRelation[]>(`/api/care-relations/${row.id}/revoke`, { method: "POST" });
+      const rows = await api<CareRelation[]>(`/api/care-relations/${row.id}`, { method: "DELETE" });
       setRelations(rows);
       setMessage("연결을 끊었습니다.");
     } catch {

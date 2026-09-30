@@ -25,7 +25,9 @@ export type CareRelation = {
   canReject: boolean;
   canCancel: boolean;
   canRevoke: boolean;
+  requestedAt: string;
   acceptedAt: string | null;
+  endedAt: string | null;
 };
 
 export type AiDocumentListItem = {

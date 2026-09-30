@@ -98,7 +98,9 @@ function HomeBody() {
   }
 
   async function mutate(id: string, action: "accept" | "reject" | "cancel") {
-    const rows = await api<CareRelation[]>(`/api/care-relations/${id}/${action}`, { method: "POST" });
+    const rows = action === "cancel"
+      ? await api<CareRelation[]>(`/api/care-relations/${id}/request`, { method: "DELETE" })
+      : await api<CareRelation[]>(`/api/care-relations/${id}/${action}`, { method: "POST" });
     setRelations(rows);
   }
 
