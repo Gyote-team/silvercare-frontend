@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import {
   API_BASE,
   ApiRequestError,
+  deleteDocument,
   fetchAiDocument,
   fetchAiDocumentExplanationStatus,
   fetchAiDocumentSections,
@@ -45,6 +46,7 @@ function jobStatusLabel(status: string) {
 
 export default function AiDocumentDetailPage() {
   const { me, loading: loadingMe } = useMe();
+  const router = useRouter();
   const params = useParams<{ documentId: string }>();
   const searchParams = useSearchParams();
   const documentId = params.documentId;
@@ -57,6 +59,8 @@ export default function AiDocumentDetailPage() {
   const [status, setStatus] = useState<AiDocumentExplanationStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (!me || !documentId) {
@@ -112,6 +116,32 @@ export default function AiDocumentDetailPage() {
 
   if (loadingMe || !me || loading) {
     return <PhoneFrame tab="documents"><p className="page-sub">문서를 불러오는 중…</p></PhoneFrame>;
+  }
+
+  async function onDelete() {
+    const ok = window.confirm("이 문서를 삭제할까요?\n삭제한 문서는 문서함에서 사라지고, 이 문서에서 만들어진 확인 전 할 일도 함께 취소됩니다.");
+    if (!ok) {
+      return;
+    }
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteDocument(documentId);
+      router.replace(documentsHref);
+    } catch (caught) {
+      setDeleting(false);
+      if (caught instanceof ApiRequestError && caught.status === 401) {
+        router.replace("/login");
+        return;
+      }
+      if (caught instanceof ApiRequestError && caught.status === 404) {
+        setDeleteError("문서를 찾을 수 없거나 삭제 권한이 없습니다.");
+      } else if (caught instanceof ApiRequestError && caught.status === 409) {
+        setDeleteError("이미 삭제된 문서입니다.");
+      } else {
+        setDeleteError("문서를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      }
+    }
   }
 
   return (
@@ -176,6 +206,15 @@ export default function AiDocumentDetailPage() {
               원문 문서 보기
             </a>
           ) : null}
+        </>
+      ) : null}
+
+      {!error && status ? (
+        <>
+          {deleteError ? <p className="msg error">{deleteError}</p> : null}
+          <button className="btn-out" type="button" style={{ marginTop: 12 }} disabled={deleting} onClick={onDelete}>
+            {deleting ? "삭제 중…" : "문서 삭제"}
+          </button>
         </>
       ) : null}
     </PhoneFrame>
