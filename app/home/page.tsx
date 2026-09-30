@@ -24,6 +24,9 @@ function HomeBody() {
   const connected = relations.filter((row) => row.status === "ACTIVE");
   const caregiver = me?.role === "CAREGIVER";
   const patient = me?.role === "PATIENT";
+  const documentsHref = caregiver && connected.length === 1
+    ? `/documents?patientId=${encodeURIComponent(connected[0].patientId)}`
+    : "/documents";
 
   useEffect(() => {
     if (me) {
@@ -286,7 +289,7 @@ function HomeBody() {
           <h3>보호자 기록</h3>
           <p>가족이 대신 기록하기</p>
         </Link>
-        <Link className="action-card a3" href="/documents">
+        <Link className="action-card a3" href={documentsHref}>
           <div className="icon">📄</div>
           <h3>병원 서류 등록</h3>
           <p>촬영하면 AI가 정리해요</p>
@@ -310,7 +313,7 @@ function HomeBody() {
 
       <div className="section-label">
         <span>오늘 할 일</span>
-        <Link href="/documents">문서함 ›</Link>
+        <Link href={documentsHref}>문서함 ›</Link>
       </div>
       <div className="card" style={{ padding: "6px 16px" }}>
         <div className="mini-row">
