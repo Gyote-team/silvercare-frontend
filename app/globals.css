@@ -302,7 +302,7 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 14px 12px;
+  padding: 14px;
 }
 
 .bond-avatars {
@@ -353,26 +353,6 @@ a { color: inherit; }
   font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
-}
-
-.bond-unlink {
-  display: block;
-  width: 100%;
-  border: 0;
-  border-top: 1px solid var(--line);
-  background: none;
-  padding: 11px 14px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-soft);
-  cursor: pointer;
-  text-align: center;
-}
-
-.bond-unlink:hover {
-  color: var(--danger);
-  background: #fdf7f5;
 }
 
 .greeting {
@@ -954,10 +934,29 @@ textarea.record-area {
   color: var(--ink-soft);
 }
 
-.linked-status {
-  font-size: 12px;
+.linked-unlink {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 12.5px;
   font-weight: 700;
-  color: var(--mid-green);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.linked-unlink:hover,
+.linked-unlink:focus-visible {
+  color: #b84a4a;
+  border-color: #e8c4c4;
+  background: #fdf7f7;
+}
+
+.account-msg {
+  margin: 0 4px 10px;
+  font-size: 13px;
 }
 
 .settings-empty {

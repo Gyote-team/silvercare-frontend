@@ -56,6 +56,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [relations, setRelations] = useState<CareRelation[] | null>(null);
   const [copied, setCopied] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (!me) {
@@ -85,6 +86,24 @@ export default function AccountPage() {
     }
     await logout();
     router.replace("/login");
+  }
+
+  async function unlink(row: CareRelation) {
+    const label = patient ? `보호자 ${row.counterpartName}` : row.counterpartName;
+    const detail = patient
+      ? "끊으면 보호자는 이 기록을 보지 못합니다."
+      : "끊으면 이 분의 기록을 보지 못합니다.";
+    const ok = window.confirm(`${label} 님과 연결을 끊을까요?\n${detail}`);
+    if (!ok) {
+      return;
+    }
+    try {
+      const rows = await api<CareRelation[]>(`/api/care-relations/${row.id}/revoke`, { method: "POST" });
+      setRelations(rows);
+      setMessage("연결을 끊었습니다.");
+    } catch {
+      setMessage("연결을 끊지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    }
   }
 
   async function copyInvite() {
@@ -140,6 +159,7 @@ export default function AccountPage() {
       </ul>
 
       <p className="account-section-title">{patient ? "연결된 보호자" : "연결된 가족"}</p>
+      {message ? <p className="msg account-msg">{message}</p> : null}
       <ul className="settings-group">
         {relations === null ? (
           <li className="settings-row">
@@ -160,7 +180,11 @@ export default function AccountPage() {
                   <small>{formatDate(row.acceptedAt)}부터 연결</small>
                 </span>
               </span>
-              <span className="linked-status">연결됨</span>
+              {row.canRevoke ? (
+                <button className="linked-unlink" type="button" onClick={() => unlink(row)}>
+                  연결 해제
+                </button>
+              ) : null}
             </li>
           ))
         )}

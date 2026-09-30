@@ -97,22 +97,9 @@ function HomeBody() {
     }
   }
 
-  async function mutate(id: string, action: "accept" | "reject" | "cancel" | "revoke") {
+  async function mutate(id: string, action: "accept" | "reject" | "cancel") {
     const rows = await api<CareRelation[]>(`/api/care-relations/${id}/${action}`, { method: "POST" });
     setRelations(rows);
-  }
-
-  async function unlink(row: CareRelation) {
-    const label = patient ? `보호자 ${row.counterpartName}` : row.counterpartName;
-    const detail = patient
-      ? "끊으면 보호자는 이 기록을 보지 못합니다."
-      : "끊으면 이 분의 기록을 보지 못합니다.";
-    const ok = window.confirm(`${label} 님과 연결을 끊을까요?\n${detail}`);
-    if (!ok) {
-      return;
-    }
-    await mutate(row.id, "revoke");
-    setLiveMsg("연결을 끊었습니다.");
   }
 
   async function copyInvite() {
@@ -162,11 +149,6 @@ function HomeBody() {
                     <span>{patient ? "보호자와 연결됨" : "연동됨"}</span>
                   </div>
                 </div>
-                {row.canRevoke ? (
-                  <button className="bond-unlink" type="button" onClick={() => unlink(row)}>
-                    연결 해제
-                  </button>
-                ) : null}
               </section>
             ))}
           </div>
