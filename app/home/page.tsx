@@ -329,6 +329,10 @@ function HomeBody() {
           <div className="mini-text"><b>생활 주의사항</b><span>계단 이용 시 난간 이용 권장</span></div>
         </div>
       </div>
+
+      <Link className="account-withdraw-link" href="/withdraw">
+        회원 탈퇴
+      </Link>
     </PhoneFrame>
   );
 }

@@ -175,6 +175,18 @@ export function fetchAiDocumentExplanationStatus(documentId: string) {
   );
 }
 
+export type WithdrawalResponse = {
+  userStatus: string;
+  revokedRelationCount: number;
+};
+
+export function withdrawAccount() {
+  return api<WithdrawalResponse>("/api/me", {
+    method: "DELETE",
+    body: JSON.stringify({ confirmed: true })
+  });
+}
+
 export function kakaoLoginUrl() {
   return `${API_BASE}/oauth2/authorization/kakao`;
 }

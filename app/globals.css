@@ -701,6 +701,56 @@ textarea.record-area {
   line-height: 1.5;
 }
 
+.account-withdraw-link {
+  display: block;
+  margin: 8px auto 4px;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: center;
+  text-decoration: underline;
+}
+
+.withdraw-notice ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.withdraw-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 2px 18px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.withdraw-agree input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+}
+
+.btn-withdraw {
+  background: #b84a4a;
+  margin-bottom: 10px;
+}
+
+.btn-withdraw:disabled {
+  background: var(--line);
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+
+.withdraw-back {
+  box-sizing: border-box;
+}
+
 .past-entry {
   display: flex;
   gap: 10px;
