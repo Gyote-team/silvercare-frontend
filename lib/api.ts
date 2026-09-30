@@ -203,3 +203,7 @@ export async function logout() {
 export function kakaoLoginUrl() {
   return `${API_BASE}/oauth2/authorization/kakao`;
 }
+
+export function deleteDocument(documentId: string) {
+  return api<void>(`/api/documents/${encodeURIComponent(documentId)}`, { method: "DELETE" });
+}
