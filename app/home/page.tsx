@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { rememberAccount } from "@/lib/accountHint";
-import { api, API_BASE, type CareRelation } from "@/lib/api";
+import { api, type CareRelation } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
 function HomeBody() {
   const { me, loading } = useMe();
-  const router = useRouter();
   const params = useSearchParams();
   const [relations, setRelations] = useState<CareRelation[]>([]);
   const [inviteCode, setInviteCode] = useState("");
@@ -79,19 +78,6 @@ function HomeBody() {
     return () => window.clearInterval(timer);
   }, [me]);
 
-  async function logout() {
-    const ok = window.confirm("로그아웃하면 이 기기에서 로그인이 풀립니다. 로그아웃할까요?");
-    if (!ok) {
-      return;
-    }
-    await fetch(`${API_BASE}/logout`, {
-      method: "POST",
-      credentials: "include",
-      headers: { Accept: "application/json" }
-    });
-    router.replace("/login");
-  }
-
   async function requestLink(event: FormEvent) {
     event.preventDefault();
     try {
@@ -111,22 +97,11 @@ function HomeBody() {
     }
   }
 
-  async function mutate(id: string, action: "accept" | "reject" | "cancel" | "revoke") {
-    const rows = await api<CareRelation[]>(`/api/care-relations/${id}/${action}`, { method: "POST" });
+  async function mutate(id: string, action: "accept" | "reject" | "cancel") {
+    const rows = action === "cancel"
+      ? await api<CareRelation[]>(`/api/care-relations/${id}/request`, { method: "DELETE" })
+      : await api<CareRelation[]>(`/api/care-relations/${id}/${action}`, { method: "POST" });
     setRelations(rows);
-  }
-
-  async function unlink(row: CareRelation) {
-    const label = patient ? `보호자 ${row.counterpartName}` : row.counterpartName;
-    const detail = patient
-      ? "끊으면 보호자는 이 기록을 보지 못합니다."
-      : "끊으면 이 분의 기록을 보지 못합니다.";
-    const ok = window.confirm(`${label} 님과 연결을 끊을까요?\n${detail}`);
-    if (!ok) {
-      return;
-    }
-    await mutate(row.id, "revoke");
-    setLiveMsg("연결을 끊었습니다.");
   }
 
   async function copyInvite() {
@@ -156,16 +131,13 @@ function HomeBody() {
   const err = params.get("error");
 
   return (
-    <PhoneFrame tab="home" chatLocked={caregiver}>
+    <PhoneFrame tab="home" chatLocked={caregiver} userName={me.name}>
       <div className="home-hero">
         <div className="home-header">
           <div className="greeting">
             안녕하세요
             <div className="greeting-row">
               <b>{me.name} 님</b>
-              <button className="header-logout" type="button" onClick={logout}>
-                로그아웃
-              </button>
             </div>
             {connected.map((row) => (
               <section key={row.id} className="bond-card">
@@ -179,11 +151,6 @@ function HomeBody() {
                     <span>{patient ? "보호자와 연결됨" : "연동됨"}</span>
                   </div>
                 </div>
-                {row.canRevoke ? (
-                  <button className="bond-unlink" type="button" onClick={() => unlink(row)}>
-                    연결 해제
-                  </button>
-                ) : null}
               </section>
             ))}
           </div>

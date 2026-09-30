@@ -12,7 +12,7 @@ export default function ChatPage() {
   const locked = me.role === "CAREGIVER";
 
   return (
-    <PhoneFrame tab="chat" chatLocked={locked}>
+    <PhoneFrame tab="chat" chatLocked={locked} userName={me.name}>
       <div className="page-title">AI에게 물어보기</div>
       {locked ? (
         <div className="card lock-card">

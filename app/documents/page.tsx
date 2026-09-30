@@ -134,7 +134,7 @@ function DocumentsPageContent() {
   const caregiverNeedsPatient = me.role === "CAREGIVER" && !patientId;
 
   return (
-    <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"}>
+    <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <div className="page-title">의료문서함</div>
       <p className="page-sub">등록된 의료문서와 AI 설명을 확인할 수 있어요.</p>
 

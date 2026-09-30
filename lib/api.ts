@@ -6,6 +6,8 @@ export type Me = {
   role: "PATIENT" | "CAREGIVER" | "PENDING" | "ADMIN";
   status: string;
   inviteCode: string | null;
+  loginProvider: "KAKAO" | "DEMO";
+  createdAt: string | null;
 };
 
 export type AuthConfig = {
@@ -23,6 +25,9 @@ export type CareRelation = {
   canReject: boolean;
   canCancel: boolean;
   canRevoke: boolean;
+  requestedAt: string;
+  acceptedAt: string | null;
+  endedAt: string | null;
 };
 
 export type AiDocumentListItem = {
@@ -173,6 +178,26 @@ export function fetchAiDocumentExplanationStatus(documentId: string) {
   return api<AiDocumentExplanationStatusResponse>(
     `/api/ai-documents/${encodeURIComponent(documentId)}/explanation-status`
   );
+}
+
+export type WithdrawalResponse = {
+  userStatus: string;
+  revokedRelationCount: number;
+};
+
+export function withdrawAccount() {
+  return api<WithdrawalResponse>("/api/me", {
+    method: "DELETE",
+    body: JSON.stringify({ confirmed: true })
+  });
+}
+
+export async function logout() {
+  await fetch(`${API_BASE}/logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: { Accept: "application/json" }
+  });
 }
 
 export function kakaoLoginUrl() {

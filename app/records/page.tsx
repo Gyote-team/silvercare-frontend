@@ -14,7 +14,7 @@ export default function RecordsPage() {
   }
 
   return (
-    <PhoneFrame tab="records" chatLocked={me.role === "CAREGIVER"}>
+    <PhoneFrame tab="records" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <div className="page-title">건강 상태 기록</div>
       <p className="page-sub">오늘 몸 상태를 간단히 남겨주세요. AI가 진료 전 요약에 반영해요.</p>
       <div className="writer-select">

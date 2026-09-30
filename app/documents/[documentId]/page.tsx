@@ -115,7 +115,7 @@ export default function AiDocumentDetailPage() {
   }
 
   return (
-    <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"}>
+    <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <Link href={documentsHref} className="document-back">← 문서함</Link>
       {error ? <p className="msg error">{error}</p> : null}
 

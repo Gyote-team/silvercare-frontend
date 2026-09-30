@@ -17,6 +17,7 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
   const [config, setConfig] = useState<AuthConfig | null>(null);
   const [offline, setOffline] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [demoError, setDemoError] = useState("");
 
   useEffect(() => {
     api<AuthConfig>("/api/auth/config")
@@ -32,12 +33,17 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
 
   async function demoLogin(event: FormEvent) {
     event.preventDefault();
-    const me = await api<{ role: string }>("/api/demo/login", {
-      method: "POST",
-      body: JSON.stringify({ role: "CAREGIVER" })
-    });
-    rememberAccount();
-    router.replace(me.role === "PENDING" ? "/role" : "/home");
+    setDemoError("");
+    try {
+      const me = await api<{ role: string }>("/api/demo/login", {
+        method: "POST",
+        body: JSON.stringify({ role: "CAREGIVER" })
+      });
+      rememberAccount();
+      router.replace(me.role === "PENDING" ? "/role" : "/home");
+    } catch {
+      setDemoError("시연용 로그인에 실패했습니다.");
+    }
   }
 
   return (
@@ -58,7 +64,12 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
             offline={offline}
             busy={busy}
             onBusy={() => setBusy(true)}
-            extra={extra}
+            extra={
+              <>
+                {extra}
+                {demoError ? <p className="msg error">{demoError}</p> : null}
+              </>
+            }
           />
         </div>
         <AuthFooter

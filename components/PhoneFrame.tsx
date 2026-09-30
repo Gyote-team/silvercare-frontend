@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { AccountMenu } from "@/components/AccountMenu";
 import { BrandLogo } from "@/components/BrandLogo";
 import { TabBar } from "@/components/TabBar";
 
@@ -10,15 +11,17 @@ type Props = {
   chatLocked?: boolean;
   scrollClassName?: string;
   showTopbar?: boolean;
+  userName?: string;
 };
 
-export function PhoneFrame({ children, tab, chatLocked, scrollClassName, showTopbar = true }: Props) {
+export function PhoneFrame({ children, tab, chatLocked, scrollClassName, showTopbar = true, userName }: Props) {
   return (
     <div className="phone">
       <div className="phone-screen">
         {showTopbar ? (
           <header className="app-topbar">
             <BrandLogo compact />
+            {userName ? <AccountMenu userName={userName} /> : null}
           </header>
         ) : null}
         <div className={`screen-scroll ${scrollClassName ?? ""}`}>{children}</div>

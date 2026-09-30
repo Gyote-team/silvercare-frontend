@@ -10,7 +10,7 @@ export default function TimelinePage() {
   }
 
   return (
-    <PhoneFrame tab="timeline" chatLocked={me.role === "CAREGIVER"}>
+    <PhoneFrame tab="timeline" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <div className="page-title">진료 타임라인</div>
       <p className="page-sub">Visit 단위로 기록과 서류, 일정이 시간순으로 이어져요.</p>
       <div className="timeline-wrap">
