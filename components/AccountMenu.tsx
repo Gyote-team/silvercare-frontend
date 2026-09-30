@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE } from "@/lib/api";
+import { logout } from "@/lib/api";
 
 export function AccountMenu({ userName }: { userName: string }) {
   const router = useRouter();
@@ -32,17 +32,13 @@ export function AccountMenu({ userName }: { userName: string }) {
     };
   }, [open]);
 
-  async function logout() {
+  async function onLogout() {
     setOpen(false);
     const ok = window.confirm("로그아웃하면 이 기기에서 로그인이 풀립니다. 로그아웃할까요?");
     if (!ok) {
       return;
     }
-    await fetch(`${API_BASE}/logout`, {
-      method: "POST",
-      credentials: "include",
-      headers: { Accept: "application/json" }
-    });
+    await logout();
     router.replace("/login");
   }
 
@@ -63,7 +59,7 @@ export function AccountMenu({ userName }: { userName: string }) {
           <Link className="account-item" href="/account" role="menuitem" onClick={() => setOpen(false)}>
             내 계정
           </Link>
-          <button className="account-item" type="button" role="menuitem" onClick={logout}>
+          <button className="account-item" type="button" role="menuitem" onClick={onLogout}>
             로그아웃
           </button>
         </div>
