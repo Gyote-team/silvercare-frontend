@@ -6,7 +6,7 @@ import { AuthActions, AuthFooter } from "@/components/AuthActions";
 import { BrandLogo } from "@/components/BrandLogo";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { rememberAccount } from "@/lib/accountHint";
-import { api, ApiRequestError, type AuthConfig } from "@/lib/api";
+import { api, type AuthConfig } from "@/lib/api";
 
 type WelcomeScreenProps = {
   extra?: ReactNode;
@@ -41,12 +41,8 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
       });
       rememberAccount();
       router.replace(me.role === "PENDING" ? "/role" : "/home");
-    } catch (error) {
-      setDemoError(
-        error instanceof ApiRequestError && error.status === 409
-          ? "시연용 계정이 탈퇴 상태라 들어갈 수 없습니다."
-          : "시연용 로그인에 실패했습니다."
-      );
+    } catch {
+      setDemoError("시연용 로그인에 실패했습니다.");
     }
   }
 

@@ -25,7 +25,7 @@ export default function WithdrawPage() {
   const counterpart = me.role === "PATIENT" ? "보호자와" : "가족(개인)과";
 
   async function withdraw() {
-    const ok = window.confirm("정말 탈퇴할까요?\n탈퇴한 카카오 계정으로는 다시 로그인할 수 없습니다.");
+    const ok = window.confirm("정말 탈퇴할까요?\n탈퇴는 되돌릴 수 없고, 다시 가입하면 새 계정으로 시작합니다.");
     if (!ok) {
       return;
     }
@@ -53,8 +53,8 @@ export default function WithdrawPage() {
         <p className="card-label">탈퇴하면</p>
         <ul>
           <li>연결된 {counterpart}의 연결이 모두 해제되고, 대기 중인 연결 요청은 취소됩니다.</li>
-          <li>이 카카오 계정으로는 다시 로그인하거나 가입할 수 없습니다.</li>
-          <li>탈퇴는 되돌릴 수 없습니다.</li>
+          <li>탈퇴는 되돌릴 수 없습니다. 탈퇴한 계정으로는 다시 들어올 수 없어요.</li>
+          <li>같은 카카오 계정으로 다시 가입할 수 있지만, 새 계정으로 시작하며 기존 연결과 기록은 복구되지 않습니다.</li>
         </ul>
       </section>
 
