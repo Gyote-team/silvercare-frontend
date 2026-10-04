@@ -1827,6 +1827,7 @@ textarea.record-area {
   display: flex;
   justify-content: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .demo-link button {

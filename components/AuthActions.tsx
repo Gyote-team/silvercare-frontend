@@ -55,7 +55,7 @@ export function AuthFooter({
 }: {
   legalPrefix: string;
   demoLogin?: boolean;
-  onDemo?: (event: SyntheticEvent, account: "MINJI" | "SOONJA" | "HWANWOO") => void;
+  onDemo?: (event: SyntheticEvent, account: "MINJI" | "SOONJA" | "YOUNGSOO" | "JIEUN") => void;
 }) {
   return (
     <footer className="login-footer">
@@ -69,7 +69,8 @@ export function AuthFooter({
           <div className="demo-account-buttons">
             <button type="button" onClick={(event) => onDemo(event, "MINJI")}>김민지</button>
             <button type="button" onClick={(event) => onDemo(event, "SOONJA")}>김순자</button>
-            <button type="button" onClick={(event) => onDemo(event, "HWANWOO")}>최환우</button>
+            <button type="button" onClick={(event) => onDemo(event, "YOUNGSOO")}>박영수</button>
+            <button type="button" onClick={(event) => onDemo(event, "JIEUN")}>이지은</button>
           </div>
         </div>
       ) : null}

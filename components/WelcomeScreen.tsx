@@ -31,7 +31,7 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
       });
   }, []);
 
-  async function demoLogin(event: SyntheticEvent, account: "MINJI" | "SOONJA" | "HWANWOO") {
+  async function demoLogin(event: SyntheticEvent, account: "MINJI" | "SOONJA" | "YOUNGSOO" | "JIEUN") {
     event.preventDefault();
     setDemoError("");
     try {
