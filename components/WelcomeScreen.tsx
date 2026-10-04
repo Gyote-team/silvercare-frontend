@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { ReactNode, SyntheticEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthActions, AuthFooter } from "@/components/AuthActions";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -31,13 +31,13 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
       });
   }, []);
 
-  async function demoLogin(event: FormEvent) {
+  async function demoLogin(event: SyntheticEvent, account: "MINJI" | "SOONJA" | "HWANWOO") {
     event.preventDefault();
     setDemoError("");
     try {
       const me = await api<{ role: string }>("/api/demo/login", {
         method: "POST",
-        body: JSON.stringify({ role: "CAREGIVER" })
+        body: JSON.stringify({ account })
       });
       rememberAccount();
       router.replace(me.role === "PENDING" ? "/role" : "/home");

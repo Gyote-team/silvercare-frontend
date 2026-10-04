@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, ReactNode, useState } from "react";
+import { ReactNode, SyntheticEvent, useState } from "react";
 import { SocialButtons } from "@/components/SocialButtons";
 import type { AuthConfig } from "@/lib/api";
 
@@ -55,7 +55,7 @@ export function AuthFooter({
 }: {
   legalPrefix: string;
   demoLogin?: boolean;
-  onDemo?: (event: FormEvent) => void;
+  onDemo?: (event: SyntheticEvent, account: "MINJI" | "SOONJA" | "HWANWOO") => void;
 }) {
   return (
     <footer className="login-footer">
@@ -64,9 +64,14 @@ export function AuthFooter({
         <Link href="/terms">이용약관</Link>과 <Link href="/privacy">개인정보 처리방침</Link>에 동의하게 됩니다.
       </p>
       {demoLogin && onDemo ? (
-        <form className="demo-link" onSubmit={onDemo}>
-          <button type="submit">시연용 · 보호자(김민지)로 보기</button>
-        </form>
+        <div className="demo-link">
+          <p>시연용 계정</p>
+          <div className="demo-account-buttons">
+            <button type="button" onClick={(event) => onDemo(event, "MINJI")}>김민지</button>
+            <button type="button" onClick={(event) => onDemo(event, "SOONJA")}>김순자</button>
+            <button type="button" onClick={(event) => onDemo(event, "HWANWOO")}>최환우</button>
+          </div>
+        </div>
       ) : null}
     </footer>
   );
