@@ -30,7 +30,13 @@ function HomeBody() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const activePatientId = selectedPatientId
     ?? (selectableOwnProfile ? ownPatientId : caredPeople[0]?.patientId ?? ownPatientId);
+  const viewingOwnProfile = activePatientId === ownPatientId;
+  const selectedPerson = caredPeople.find((row) => row.patientId === activePatientId);
+  const targetName = viewingOwnProfile ? me?.name ?? "나" : selectedPerson?.counterpartName ?? "연결된 개인";
   const documentsHref = activePatientId ? `/documents?patientId=${encodeURIComponent(activePatientId)}` : "/documents";
+  const recordsHref = activePatientId
+    ? `/records?patientId=${encodeURIComponent(activePatientId)}&name=${encodeURIComponent(targetName)}`
+    : "/records";
 
   useEffect(() => {
     if (me) {
@@ -258,40 +264,40 @@ function HomeBody() {
       ) : null}
 
       <div className="action-grid">
-        <Link className="action-card a1" href="/records">
+        <Link className="action-card a1" href={recordsHref}>
           <div className="icon">📝</div>
-          <h3>오늘 상태 기록</h3>
-          <p>텍스트나 음성으로 간단히</p>
+          <h3>{viewingOwnProfile ? "오늘 상태 기록" : `${targetName} 상태 기록`}</h3>
+          <p>{viewingOwnProfile ? "내 몸 상태를 직접 남기기" : "상태를 확인하고 기록하기"}</p>
         </Link>
-        <Link className="action-card a2" href="/records">
+        <Link className="action-card a2" href={recordsHref}>
           <div className="icon">🤝</div>
-          <h3>보호자 기록</h3>
-          <p>가족이 대신 기록하기</p>
+          <h3>{viewingOwnProfile ? "내 기록" : "보호자 기록"}</h3>
+          <p>{viewingOwnProfile ? "내가 남긴 건강 기록 보기" : `${targetName} 님 대신 기록하기`}</p>
         </Link>
         <Link className="action-card a3" href={documentsHref}>
           <div className="icon">📄</div>
-          <h3>병원 서류 등록</h3>
-          <p>촬영하면 AI가 정리해요</p>
+          <h3>{viewingOwnProfile ? "내 병원 서류" : `${targetName} 병원 서류`}</h3>
+          <p>{viewingOwnProfile ? "내 서류를 촬영해 등록하기" : "대신 촬영해 등록하기"}</p>
         </Link>
         <Link className="action-card a4" href="/timeline">
           <div className="icon">🗂️</div>
-          <h3>지난 진료 보기</h3>
+          <h3>{viewingOwnProfile ? "내 지난 진료" : `${targetName} 지난 진료`}</h3>
           <p>Visit 타임라인 확인</p>
         </Link>
       </div>
 
       <div className="section-label">
-        <span>진료 전 AI 요약</span>
+        <span>{viewingOwnProfile ? "내 진료 전 AI 요약" : `${targetName} 님 진료 전 AI 요약`}</span>
         <Link href="/timeline">전체보기 ›</Link>
       </div>
       <Link className="summary-preview" href="/timeline">
         <span className="tag">10월 15일 재진 대비 준비 중</span>
-        <p>최근 2주간 무릎 불편감 <b>7회</b> 기록됨 (최초 8월 12일). 계단 이용 시 특히 불편, 최근 기록 빈도 증가 추세.</p>
+        <p>{viewingOwnProfile ? "내" : `${targetName} 님의`} 최근 2주간 무릎 불편감 <b>7회</b> 기록됨 (최초 8월 12일). 계단 이용 시 특히 불편, 최근 기록 빈도 증가 추세.</p>
         <div className="go">의료진에게 전달할 요약 전체 보기 →</div>
       </Link>
 
       <div className="section-label">
-        <span>오늘 할 일</span>
+        <span>{viewingOwnProfile ? "내 오늘 할 일" : `${targetName} 님 오늘 할 일`}</span>
         <Link href={documentsHref}>문서함 ›</Link>
       </div>
       <div className="card" style={{ padding: "6px 16px" }}>
