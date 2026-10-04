@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { api, logout, type CareRelation, type Me } from "@/lib/api";
@@ -57,6 +57,9 @@ export default function AccountPage() {
   const [relations, setRelations] = useState<CareRelation[] | null>(null);
   const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState("");
+  const [showAddConnection, setShowAddConnection] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [requesting, setRequesting] = useState(false);
 
   useEffect(() => {
     if (!me) {
@@ -106,6 +109,7 @@ export default function AccountPage() {
     }
   }
 
+  // 개인 계정의 초대 코드를 복사해 추가 보호자 연결에 사용한다.
   async function copyInvite() {
     if (!me?.inviteCode) {
       return;
@@ -116,6 +120,30 @@ export default function AccountPage() {
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       // 복사 권한이 없으면 코드를 직접 보고 입력하면 된다.
+    }
+  }
+
+  // 보호자가 다른 개인의 초대 코드로 추가 연결을 요청하고 목록을 갱신한다.
+  async function requestAdditionalConnection(event: FormEvent) {
+    event.preventDefault();
+    setRequesting(true);
+    try {
+      const rows = await api<CareRelation[]>("/api/care-relations", {
+        method: "POST",
+        body: JSON.stringify({ inviteCode })
+      });
+      setRelations(rows);
+      setInviteCode("");
+      setShowAddConnection(false);
+      setMessage("연결 요청을 보냈습니다. 개인이 수락하면 연결됩니다.");
+    } catch (error) {
+      const key = error && typeof error === "object" && "error" in error ? String(error.error) : "fail";
+      if (key === "code") setMessage("없는 코드입니다. 개인이 보여 준 코드를 다시 넣어 주세요.");
+      else if (key === "self") setMessage("자기 자신과는 연결할 수 없습니다.");
+      else if (key === "duplicate") setMessage("이미 요청했거나 연결되어 있습니다.");
+      else setMessage("연결 요청을 보내지 못했습니다.");
+    } finally {
+      setRequesting(false);
     }
   }
 
@@ -188,6 +216,12 @@ export default function AccountPage() {
             </li>
           ))
         )}
+        <li>
+          <button className="settings-row settings-link" type="button" onClick={() => setShowAddConnection(true)}>
+            <span className="settings-label strong">{patient ? "보호자 추가 연결" : "개인 추가 연결"}</span>
+            <span className="settings-chevron">›</span>
+          </button>
+        </li>
         {pendingCount > 0 ? (
           <li>
             <Link className="settings-row settings-link" href="/home">
@@ -228,6 +262,41 @@ export default function AccountPage() {
           </Link>
         </li>
       </ul>
+
+      {/* 홈으로 이동하지 않고 내 계정 화면에서 추가 연결을 처리한다. */}
+      {showAddConnection ? (
+        <div className="connection-modal-backdrop" role="presentation" onMouseDown={() => setShowAddConnection(false)}>
+          <section className="connection-modal" role="dialog" aria-modal="true" aria-labelledby="add-connection-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="connection-modal-handle" aria-hidden="true" />
+            <div className="connection-modal-header">
+              <div>
+                <p className="card-label">추가 연결</p>
+                <h2 id="add-connection-title">{patient ? "보호자 추가 연결" : "개인 추가 연결"}</h2>
+              </div>
+              <button className="connection-modal-close" type="button" onClick={() => setShowAddConnection(false)} aria-label="닫기">×</button>
+            </div>
+            {patient ? (
+              <>
+                <p>새 보호자에게 아래 초대 코드를 전달해 주세요.</p>
+                <div className="invite-box">
+                  <div className="invite-code">{me.inviteCode ?? "-"}</div>
+                  <button className={`invite-copy${copied ? " is-copied" : ""}`} type="button" onClick={copyInvite}>
+                    {copied ? "✓" : "복사"}
+                  </button>
+                </div>
+                <p className="connection-modal-hint">코드만으로는 기록을 볼 수 없고, 보호자의 요청을 수락해야 연결됩니다.</p>
+              </>
+            ) : (
+              <form className="code-form" onSubmit={requestAdditionalConnection}>
+                <p>개인이 알려 준 초대 코드를 입력해 주세요.</p>
+                <label className="sr" htmlFor="additionalInviteCode">초대 코드</label>
+                <input id="additionalInviteCode" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} maxLength={8} placeholder="예: ABC-DEF" required />
+                <button className="btn-primary" type="submit" disabled={requesting}>{requesting ? "요청 중…" : "연결 요청"}</button>
+              </form>
+            )}
+          </section>
+        </div>
+      ) : null}
     </PhoneFrame>
   );
 }
