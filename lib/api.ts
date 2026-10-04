@@ -123,7 +123,7 @@ export class ApiRequestError extends Error {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
-  if (init?.body && !headers.has("Content-Type")) {
+  if (init?.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
   if (!headers.has("Accept")) {
@@ -206,4 +206,65 @@ export function kakaoLoginUrl() {
 
 export function deleteDocument(documentId: string) {
   return api<void>(`/api/documents/${encodeURIComponent(documentId)}`, { method: "DELETE" });
+}
+
+// 의료문서 목록의 문서 한 건(분석 전 문서 포함)
+export type MedicalDocumentListItem = {
+  documentId: string;
+  visitId: string;
+  patientId: string;
+  documentName: string;
+  documentType: string;
+  visitedOn: string | null;
+  author: { name: string; role: string };
+  documentStatus: string;
+  latestAiJobStatus: string | null;
+  resultStatus: string | null;
+  statusChangedAt: string | null;
+  retryable: boolean;
+  createdAt: string;
+};
+
+// 의료문서 목록 조회 응답
+export type MedicalDocumentListResponse = {
+  items: MedicalDocumentListItem[];
+  nextCursor: string | null;
+};
+
+// 문서 업로드 응답
+export type DocumentUploadResponse = {
+  documentId: string;
+  visitId: string;
+  mimeType: string;
+  documentStatus: string;
+  latestAiJobStatus: string | null;
+  requestId: string;
+};
+
+// 환자의 의료문서 목록을 최대 50건 불러온다(개인은 patientId 생략)
+export function fetchMedicalDocuments(patientId?: string) {
+  const params = new URLSearchParams({ size: "50" });
+  if (patientId) {
+    params.set("patientId", patientId);
+  }
+  return api<MedicalDocumentListResponse>(`/api/documents?${params.toString()}`);
+}
+
+// 진료 방문에 문서 파일을 올린다(같은 키로 다시 보내면 중복 등록되지 않는다)
+export function uploadDocument(
+  visitId: string,
+  file: File,
+  idempotencyKey: string,
+  declaredDocType?: string
+) {
+  const body = new FormData();
+  body.append("file", file);
+  if (declaredDocType) {
+    body.append("declaredDocType", declaredDocType);
+  }
+  return api<DocumentUploadResponse>(`/api/visits/${encodeURIComponent(visitId)}/documents`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body
+  });
 }
