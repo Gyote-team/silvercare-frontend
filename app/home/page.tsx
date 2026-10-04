@@ -21,11 +21,13 @@ function HomeBody() {
     (item) => item.canAccept || item.canReject || item.canCancel
   );
   const connected = relations.filter((row) => row.status === "ACTIVE");
-  const caregiver = me?.role === "CAREGIVER";
-  const patient = me?.role === "PATIENT";
-  const documentsHref = caregiver && connected.length === 1
-    ? `/documents?patientId=${encodeURIComponent(connected[0].patientId)}`
-    : "/documents";
+  const ownPatientId = me?.patientId ?? null;
+  const ownProfile = Boolean(me?.hasPatientProfile && ownPatientId);
+  const caredPeople = connected.filter((row) => row.patientId !== ownPatientId);
+  const caregivers = connected.filter((row) => row.patientId === ownPatientId);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const activePatientId = selectedPatientId ?? ownPatientId ?? caredPeople[0]?.patientId ?? null;
+  const documentsHref = activePatientId ? `/documents?patientId=${encodeURIComponent(activePatientId)}` : "/documents";
 
   useEffect(() => {
     if (me) {
@@ -131,7 +133,7 @@ function HomeBody() {
   const err = params.get("error");
 
   return (
-    <PhoneFrame tab="home" chatLocked={caregiver} userName={me.name}>
+    <PhoneFrame tab="home" userName={me.name}>
       <div className="home-hero">
         <div className="home-header">
           <div className="greeting">
@@ -148,7 +150,7 @@ function HomeBody() {
                   </div>
                   <div className="bond-copy">
                     <strong>{row.counterpartName}</strong>
-                    <span>{patient ? "보호자와 연결됨" : "연동됨"}</span>
+                    <span>{row.patientId === ownPatientId ? "나를 돌보는 보호자" : "내가 돌보는 개인"}</span>
                   </div>
                 </div>
               </section>
@@ -161,7 +163,14 @@ function HomeBody() {
       {liveMsg ? <p className="msg">{liveMsg}</p> : null}
       {err === "code" ? <p className="msg error">없는 코드입니다. 개인이 보여 준 코드를 다시 넣어 주세요.</p> : null}
 
-      {patient && connected.length === 0 ? (
+      <section className="target-card">
+        <p className="card-label">현재 보고 있는 대상</p>
+        {ownProfile ? <button className={`target-option${activePatientId === ownPatientId ? " active" : ""}`} onClick={() => setSelectedPatientId(ownPatientId)}><b>{me.name} 님</b><span>내 건강 프로필</span></button> : null}
+        {caredPeople.map((row) => <button key={row.id} className={`target-option${activePatientId === row.patientId ? " active" : ""}`} onClick={() => setSelectedPatientId(row.patientId)}><b>{row.counterpartName} 님</b><span>내가 돌보는 개인</span></button>)}
+        {!ownProfile && caredPeople.length === 0 ? <p>내 계정에서 건강 프로필을 만들거나 개인을 연결해 주세요.</p> : null}
+      </section>
+
+      {ownProfile && caregivers.length === 0 ? (
         <section className="card">
           <p className="card-label">초대 코드</p>
           <div className="invite-box">
@@ -200,7 +209,7 @@ function HomeBody() {
         </section>
       ) : null}
 
-      {caregiver && connected.length === 0 ? (
+      {caredPeople.length === 0 ? (
         <section className="card">
           <p className="card-label">가족 연결</p>
           <p>개인이 보여 준 초대 코드를 넣습니다. 요청만으로는 기록을 볼 수 없습니다.</p>

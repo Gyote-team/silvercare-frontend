@@ -6,6 +6,8 @@ export type Me = {
   role: "PATIENT" | "CAREGIVER" | "PENDING" | "ADMIN";
   status: string;
   inviteCode: string | null;
+  hasPatientProfile: boolean;
+  patientId: string | null;
   loginProvider: "KAKAO" | "DEMO";
   createdAt: string | null;
 };

@@ -63,7 +63,7 @@ function DocumentsPageContent() {
     if (!me) {
       return;
     }
-    if (me.role === "CAREGIVER" && !patientId) {
+    if (!me.hasPatientProfile && !patientId) {
       setLoadingDocuments(false);
       return;
     }
@@ -99,7 +99,7 @@ function DocumentsPageContent() {
   }, [me, patientId]);
 
   useEffect(() => {
-    if (!me || me.role !== "CAREGIVER" || patientId) {
+    if (!me || me.hasPatientProfile || patientId) {
       return;
     }
 
@@ -107,9 +107,7 @@ function DocumentsPageContent() {
     setLoadingRelations(true);
     api<CareRelation[]>("/api/care-relations")
       .then((rows) => {
-        if (!cancelled) {
-          setRelations(rows.filter((row) => row.status === "ACTIVE"));
-        }
+        if (!cancelled) setRelations(rows.filter((row) => row.status === "ACTIVE"));
       })
       .catch(() => {
         if (!cancelled) {
@@ -131,10 +129,10 @@ function DocumentsPageContent() {
     return <PhoneFrame tab="documents"><p className="page-sub">불러오는 중…</p></PhoneFrame>;
   }
 
-  const caregiverNeedsPatient = me.role === "CAREGIVER" && !patientId;
+  const caregiverNeedsPatient = !me.hasPatientProfile && !patientId;
 
   return (
-    <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
+    <PhoneFrame tab="documents" userName={me.name}>
       <div className="page-title">의료문서함</div>
       <p className="page-sub">등록된 의료문서와 AI 설명을 확인할 수 있어요.</p>
 
