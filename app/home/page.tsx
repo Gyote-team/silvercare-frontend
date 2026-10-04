@@ -25,8 +25,11 @@ function HomeBody() {
   const ownProfile = Boolean(me?.hasPatientProfile && ownPatientId);
   const caredPeople = connected.filter((row) => row.patientId !== ownPatientId);
   const caregivers = connected.filter((row) => row.patientId === ownPatientId);
+  // 내 프로필은 실제로 나를 돌보는 보호자가 연결된 경우에만 대상 전환 목록에 노출한다.
+  const selectableOwnProfile = ownProfile && caregivers.length > 0;
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const activePatientId = selectedPatientId ?? ownPatientId ?? caredPeople[0]?.patientId ?? null;
+  const activePatientId = selectedPatientId
+    ?? (selectableOwnProfile ? ownPatientId : caredPeople[0]?.patientId ?? ownPatientId);
   const documentsHref = activePatientId ? `/documents?patientId=${encodeURIComponent(activePatientId)}` : "/documents";
 
   useEffect(() => {
@@ -165,12 +168,12 @@ function HomeBody() {
 
       <section className="target-card">
         <p className="card-label">현재 보고 있는 대상</p>
-        {ownProfile ? <button className={`target-option${activePatientId === ownPatientId ? " active" : ""}`} onClick={() => setSelectedPatientId(ownPatientId)}><b>{me.name} 님</b><span>내 건강 프로필</span></button> : null}
+        {selectableOwnProfile ? <button className={`target-option${activePatientId === ownPatientId ? " active" : ""}`} onClick={() => setSelectedPatientId(ownPatientId)}><b>{me.name} 님</b><span>내 건강 프로필</span></button> : null}
         {caredPeople.map((row) => <button key={row.id} className={`target-option${activePatientId === row.patientId ? " active" : ""}`} onClick={() => setSelectedPatientId(row.patientId)}><b>{row.counterpartName} 님</b><span>내가 돌보는 개인</span></button>)}
         {!ownProfile && caredPeople.length === 0 ? <p>내 계정에서 건강 프로필을 만들거나 개인을 연결해 주세요.</p> : null}
       </section>
 
-      {ownProfile && caregivers.length === 0 ? (
+      {ownProfile && connected.length === 0 ? (
         <section className="card">
           <p className="card-label">초대 코드</p>
           <div className="invite-box">
