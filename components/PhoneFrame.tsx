@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/AccountMenu";
 import { BrandLogo } from "@/components/BrandLogo";
+import { NotificationMenu } from "@/components/NotificationMenu";
 import { TabBar } from "@/components/TabBar";
 
 type Props = {
@@ -20,6 +21,7 @@ export function PhoneFrame({ children, tab, chatLocked, scrollClassName, showTop
       <div className="phone-screen">
         {showTopbar ? (
           <header className="app-topbar">
+            {userName ? <NotificationMenu /> : null}
             <BrandLogo compact />
             {userName ? <AccountMenu userName={userName} /> : null}
           </header>
