@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
-import { api, logout, type CareRelation, type Me } from "@/lib/api";
+import { api, logout, type CareRelation } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
 function formatDate(value: string | null) {
@@ -16,12 +16,11 @@ function formatDate(value: string | null) {
 export default function AccountPage() {
   const { me, loading } = useMe();
   const router = useRouter();
-  const [profile, setProfile] = useState<Me | null>(null);
   const [relations, setRelations] = useState<CareRelation[] | null>(null);
   const [showConnect, setShowConnect] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [message, setMessage] = useState("");
-  const current = profile ?? me;
+  const current = me;
 
   useEffect(() => {
     if (!me) return;
@@ -35,13 +34,6 @@ export default function AccountPage() {
   const caringRelations = all.filter((row) => row.patientId !== current.patientId);
   const activeMyCaregivers = myProfileRelations.filter((row) => row.status === "ACTIVE");
   const activePeople = caringRelations.filter((row) => row.status === "ACTIVE");
-
-  async function createProfile() {
-    try {
-      setProfile(await api<Me>("/api/me/patient-profile", { method: "POST" }));
-      setMessage("내 건강 프로필을 만들었습니다. 이제 초대 코드로 보호자와 연결할 수 있어요.");
-    } catch { setMessage("건강 프로필을 만들지 못했습니다. 잠시 후 다시 시도해 주세요."); }
-  }
 
   async function requestConnection() {
     try {
@@ -70,7 +62,7 @@ export default function AccountPage() {
       <ul className="settings-group"><li className="settings-row"><span className="settings-label">로그인 방식</span><span className="settings-value">{current.loginProvider === "DEMO" ? "시연용 계정" : "카카오"}</span></li><li className="settings-row"><span className="settings-label">가입일</span><span className="settings-value">{formatDate(current.createdAt)}</span></li><li className="settings-row"><span className="settings-label">사용 기능</span><span className="settings-value">내 건강관리 · 가족 돌봄</span></li></ul>
       <p className="account-section-title">내 건강 프로필</p>
       <ul className="settings-group">
-        {current.hasPatientProfile ? <><li className="settings-row"><span className="settings-label">보호자 초대 코드</span><b className="invite-inline">{current.inviteCode}</b></li><li className="settings-row"><span className="settings-label">나를 돌보는 보호자</span><span className="settings-value">{activeMyCaregivers.length}명</span></li></> : <li className="settings-empty"><p>내 건강기록과 일정을 관리할 프로필을 아직 만들지 않았어요.</p><button className="settings-inline-btn" onClick={createProfile}>내 건강 프로필 만들기</button></li>}
+        <><li className="settings-row"><span className="settings-label">보호자 초대 코드</span><b className="invite-inline">{current.inviteCode}</b></li><li className="settings-row"><span className="settings-label">나를 돌보는 보호자</span><span className="settings-value">{activeMyCaregivers.length}명</span></li></>
       </ul>
       <p className="account-section-title">내가 돌보는 개인</p>
       <ul className="settings-group">
