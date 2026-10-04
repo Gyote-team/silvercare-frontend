@@ -18,8 +18,10 @@ export default function AccountPage() {
   const router = useRouter();
   const [relations, setRelations] = useState<CareRelation[] | null>(null);
   const [showConnect, setShowConnect] = useState(false);
+  const [showCaregiverInvite, setShowCaregiverInvite] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [message, setMessage] = useState("");
+  const [copied, setCopied] = useState(false);
   const current = me;
 
   useEffect(() => {
@@ -49,6 +51,16 @@ export default function AccountPage() {
     catch { setMessage("연결을 해제하지 못했습니다."); }
   }
 
+  async function copyCaregiverInvite() {
+    try {
+      await navigator.clipboard.writeText(me?.inviteCode ?? "");
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setMessage("복사하지 못했습니다. 초대 코드를 직접 전달해 주세요.");
+    }
+  }
+
   async function onLogout() {
     if (!window.confirm("로그아웃할까요?")) return;
     await logout(); router.replace("/login");
@@ -62,7 +74,10 @@ export default function AccountPage() {
       <ul className="settings-group"><li className="settings-row"><span className="settings-label">로그인 방식</span><span className="settings-value">{current.loginProvider === "DEMO" ? "시연용 계정" : "카카오"}</span></li><li className="settings-row"><span className="settings-label">가입일</span><span className="settings-value">{formatDate(current.createdAt)}</span></li><li className="settings-row"><span className="settings-label">사용 기능</span><span className="settings-value">내 건강관리 · 가족 돌봄</span></li></ul>
       <p className="account-section-title">내 건강 프로필</p>
       <ul className="settings-group">
-        <><li className="settings-row"><span className="settings-label">보호자 초대 코드</span><b className="invite-inline">{current.inviteCode}</b></li><li className="settings-row"><span className="settings-label">나를 돌보는 보호자</span><span className="settings-value">{activeMyCaregivers.length}명</span></li></>
+        <li className="settings-row"><span className="settings-label">보호자 초대 코드</span><b className="invite-inline">{current.inviteCode}</b></li>
+        {activeMyCaregivers.map((row) => <li key={row.id} className="settings-row"><span className="linked-person"><span className="linked-avatar">{row.counterpartName.slice(0, 1)}</span><span className="linked-copy"><b>{row.counterpartName}</b><small>{formatDate(row.acceptedAt)}부터 연결</small></span></span><button className="linked-unlink" onClick={() => unlink(row)}>연결 해제</button></li>)}
+        {activeMyCaregivers.length === 0 ? <li className="settings-empty"><p>아직 나를 돌보는 보호자가 없어요.</p></li> : null}
+        <li><button className="settings-row settings-link" onClick={() => setShowCaregiverInvite(true)}><span className="settings-label strong">보호자 추가 연결</span><span className="settings-chevron">›</span></button></li>
       </ul>
       <p className="account-section-title">내가 돌보는 개인</p>
       <ul className="settings-group">
@@ -75,6 +90,7 @@ export default function AccountPage() {
       <ul className="settings-group"><li><Link className="settings-row settings-link" href="/terms"><span className="settings-label strong">이용약관</span><span>›</span></Link></li><li><Link className="settings-row settings-link" href="/privacy"><span className="settings-label strong">개인정보 처리방침</span><span>›</span></Link></li></ul>
       <ul className="settings-group account-actions"><li><button className="settings-row settings-link" onClick={onLogout}><span className="settings-label strong">로그아웃</span><span>›</span></button></li><li><Link className="settings-row settings-link" href="/withdraw"><span className="settings-label danger">회원 탈퇴</span><span>›</span></Link></li></ul>
       {showConnect ? <div className="connection-overlay" role="dialog" aria-modal="true" aria-label="개인 추가 연결"><section className="connection-modal"><button className="connection-close" onClick={() => setShowConnect(false)} aria-label="닫기">×</button><p className="card-label">개인 추가 연결</p><p>개인이 알려 준 초대 코드를 입력해 주세요. 상대방이 수락하면 연결됩니다.</p><input value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} placeholder="예: ABC-DEF" maxLength={8} /><button className="btn-primary" onClick={requestConnection} disabled={!inviteCode.trim()}>연결 요청</button></section></div> : null}
+      {showCaregiverInvite ? <div className="connection-overlay" role="dialog" aria-modal="true" aria-label="보호자 추가 연결"><section className="connection-modal"><button className="connection-close" onClick={() => setShowCaregiverInvite(false)} aria-label="닫기">×</button><p className="card-label">보호자 추가 연결</p><p>새 보호자에게 아래 초대 코드를 전달해 주세요. 보호자 계정의 개인 추가 연결에서 입력하고, 내가 수락하면 연결됩니다.</p><div className="caregiver-invite-code">{current.inviteCode}</div><button className="btn-secondary" onClick={copyCaregiverInvite}>{copied ? "복사됨" : "초대 코드 복사"}</button></section></div> : null}
     </PhoneFrame>
   );
 }

@@ -212,7 +212,7 @@ function HomeBody() {
         </section>
       ) : null}
 
-      {caredPeople.length === 0 ? (
+      {connected.length === 0 ? (
         <section className="card">
           <p className="card-label">가족 연결</p>
           <p>개인이 보여 준 초대 코드를 넣습니다. 요청만으로는 기록을 볼 수 없습니다.</p>
