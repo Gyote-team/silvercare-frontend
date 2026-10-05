@@ -22,6 +22,7 @@ export default function AccountPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [requesting, setRequesting] = useState(false);
   const current = me;
 
   useEffect(() => {
@@ -38,11 +39,20 @@ export default function AccountPage() {
   const activePeople = caringRelations.filter((row) => row.status === "ACTIVE");
 
   async function requestConnection() {
+    setRequesting(true);
     try {
       const rows = await api<CareRelation[]>("/api/care-relations", { method: "POST", body: JSON.stringify({ inviteCode }) });
       setRelations(rows); setInviteCode(""); setShowConnect(false);
       setMessage("연결 요청을 보냈습니다. 상대방이 수락하면 기록을 볼 수 있어요.");
-    } catch { setMessage("연결 요청을 보내지 못했습니다. 초대 코드를 확인해 주세요."); }
+    } catch (error) {
+      const key = error && typeof error === "object" && "error" in error ? String(error.error) : "fail";
+      if (key === "code") setMessage("없는 코드입니다. 개인이 보여 준 코드를 다시 넣어 주세요.");
+      else if (key === "self") setMessage("자기 자신과는 연결할 수 없습니다.");
+      else if (key === "duplicate") setMessage("이미 요청했거나 연결되어 있습니다.");
+      else setMessage("연결 요청을 보내지 못했습니다. 초대 코드를 확인해 주세요.");
+    } finally {
+      setRequesting(false);
+    }
   }
 
   async function unlink(row: CareRelation) {
@@ -52,8 +62,9 @@ export default function AccountPage() {
   }
 
   async function copyCaregiverInvite() {
+    if (!current.inviteCode) return;
     try {
-      await navigator.clipboard.writeText(me?.inviteCode ?? "");
+      await navigator.clipboard.writeText(current.inviteCode);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -89,7 +100,7 @@ export default function AccountPage() {
       <p className="account-section-title">약관 및 정책</p>
       <ul className="settings-group"><li><Link className="settings-row settings-link" href="/terms"><span className="settings-label strong">이용약관</span><span>›</span></Link></li><li><Link className="settings-row settings-link" href="/privacy"><span className="settings-label strong">개인정보 처리방침</span><span>›</span></Link></li></ul>
       <ul className="settings-group account-actions"><li><button className="settings-row settings-link" onClick={onLogout}><span className="settings-label strong">로그아웃</span><span>›</span></button></li><li><Link className="settings-row settings-link" href="/withdraw"><span className="settings-label danger">회원 탈퇴</span><span>›</span></Link></li></ul>
-      {showConnect ? <div className="connection-overlay" role="dialog" aria-modal="true" aria-label="개인 추가 연결"><section className="connection-modal"><button className="connection-close" onClick={() => setShowConnect(false)} aria-label="닫기">×</button><p className="card-label">개인 추가 연결</p><p>개인이 알려 준 초대 코드를 입력해 주세요. 상대방이 수락하면 연결됩니다.</p><input value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} placeholder="예: ABC-DEF" maxLength={8} /><button className="btn-primary" onClick={requestConnection} disabled={!inviteCode.trim()}>연결 요청</button></section></div> : null}
+      {showConnect ? <div className="connection-overlay" role="dialog" aria-modal="true" aria-label="개인 추가 연결"><section className="connection-modal"><button className="connection-close" onClick={() => setShowConnect(false)} aria-label="닫기">×</button><p className="card-label">개인 추가 연결</p><p>개인이 알려 준 초대 코드를 입력해 주세요. 상대방이 수락하면 연결됩니다.</p><input value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} placeholder="예: ABC-DEF" maxLength={8} /><button className="btn-primary" onClick={requestConnection} disabled={!inviteCode.trim() || requesting}>{requesting ? "요청 중…" : "연결 요청"}</button></section></div> : null}
       {showCaregiverInvite ? <div className="connection-overlay" role="dialog" aria-modal="true" aria-label="보호자 추가 연결"><section className="connection-modal"><button className="connection-close" onClick={() => setShowCaregiverInvite(false)} aria-label="닫기">×</button><p className="card-label">보호자 추가 연결</p><p>새 보호자에게 아래 초대 코드를 전달해 주세요. 보호자 계정의 개인 추가 연결에서 입력하고, 내가 수락하면 연결됩니다.</p><div className="caregiver-invite-code">{current.inviteCode}</div><button className="btn-secondary" onClick={copyCaregiverInvite}>{copied ? "복사됨" : "초대 코드 복사"}</button></section></div> : null}
     </PhoneFrame>
   );
