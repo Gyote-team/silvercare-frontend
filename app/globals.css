@@ -981,6 +981,64 @@ textarea.record-area {
   margin-top: 8px;
 }
 
+/* 내 계정 화면에서만 사용하는 추가 연결 중앙 팝업 */
+.connection-modal-backdrop {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(480px, 100vw);
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(31, 52, 68, 0.32);
+}
+
+.connection-modal {
+  width: calc(100% - 40px);
+  padding: 10px 20px 30px;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: 0 -12px 30px rgba(36, 55, 70, 0.18);
+}
+
+.connection-modal-handle {
+  width: 42px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 99px;
+  background: var(--line);
+}
+
+.connection-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.connection-modal-header .card-label { margin: 0 0 3px; }
+.connection-modal-header h2 { margin: 0; font-size: 20px; color: var(--deep-green); }
+
+.connection-modal-close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pale-green);
+  color: var(--deep-green);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.connection-modal p { margin: 0 0 12px; font-size: 13.5px; color: var(--ink-soft); }
+.connection-modal .code-form { margin-top: 2px; }
+.connection-modal-hint { margin-top: 12px !important; font-size: 12.5px !important; }
+
 .withdraw-notice ul {
   margin: 0;
   padding-left: 18px;

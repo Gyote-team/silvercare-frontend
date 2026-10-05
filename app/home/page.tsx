@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
@@ -15,6 +15,7 @@ function HomeBody() {
   const [relations, setRelations] = useState<CareRelation[]>([]);
   const [inviteCode, setInviteCode] = useState("");
   const [liveMsg, setLiveMsg] = useState("");
+  const notifiedRequestId = useRef<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const pendingRelations = relations.filter(
@@ -57,9 +58,22 @@ function HomeBody() {
         lastKey = key;
         setRelations(rows);
         const prevById = Object.fromEntries(prev.map((row) => [row.id, row]));
+        // 수락·거절·취소·해제로 REQUESTED가 하나도 남지 않으면 이전 요청 알림도 함께 지운다.
+        const hasRequestedRelation = rows.some((row) => row.status === "REQUESTED");
+        if (!hasRequestedRelation) {
+          notifiedRequestId.current = null;
+          setLiveMsg("");
+        } else if (notifiedRequestId.current) {
+          const notified = rows.find((row) => row.id === notifiedRequestId.current);
+          if (!notified || notified.status !== "REQUESTED") {
+            notifiedRequestId.current = null;
+            setLiveMsg("");
+          }
+        }
         for (const row of rows) {
           const before = prevById[row.id];
           if (!before && row.status === "REQUESTED") {
+            notifiedRequestId.current = row.id;
             setLiveMsg(`${row.counterpartName} 님에게서 연결 요청이 왔습니다.`);
             break;
           }
