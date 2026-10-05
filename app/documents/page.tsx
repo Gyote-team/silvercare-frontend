@@ -7,6 +7,7 @@ import { PhoneFrame } from "@/components/PhoneFrame";
 import {
   ApiRequestError,
   api,
+  deleteDocument,
   fetchAiDocuments,
   fetchMedicalDocuments,
   uploadDocument,
@@ -206,7 +207,16 @@ function UploadZone({
           </label>
           <label className="upload-field">
             문서 종류 (선택)
-            <select value={docType} onChange={(event) => setDocType(event.target.value)}>
+            <select
+              value={docType}
+              onChange={(event) => {
+                setDocType(event.target.value);
+                // 같은 키로 다시 보내면 서버가 기존 결과를 돌려주고 바꾼 문서 종류는 반영하지 않으므로 키를 새로 만든다
+                if (file) {
+                  setIdempotencyKey(createIdempotencyKey());
+                }
+              }}
+            >
               <option value="">선택 안 함</option>
               {Object.entries(documentTypeLabels)
                 .filter(([type]) => type !== "UNKNOWN")
@@ -264,18 +274,61 @@ function UploadZone({
   );
 }
 
-// AI 분석이 끝나지 않은 문서 목록(상세 화면 링크 없음)
-function PendingDocuments({ documents }: { documents: MedicalDocumentListItem[] }) {
-  const pending = documents.filter((document) => document.documentStatus in pendingStatusLabels);
+// AI 분석이 끝나지 않은 문서 목록(상세 화면 링크 없음, 여기서 바로 삭제)
+function PendingDocuments({
+  documents,
+  onDeleted
+}: {
+  documents: MedicalDocumentListItem[];
+  onDeleted: () => void;
+}) {
+  const router = useRouter();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  // 삭제에 성공한 문서는 재조회를 기다리지 않고 바로 숨긴다
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
+  const pending = documents.filter(
+    (document) =>
+      document.documentStatus in pendingStatusLabels && !deletedIds.includes(document.documentId)
+  );
   if (pending.length === 0) {
     return null;
   }
+
+  async function handleDelete(documentId: string) {
+    if (!window.confirm("이 문서를 삭제할까요?\n삭제한 문서는 문서함에서 사라집니다.")) {
+      return;
+    }
+    setDeletingId(documentId);
+    setDeleteError("");
+    try {
+      await deleteDocument(documentId);
+      setDeletedIds((ids) => [...ids, documentId]);
+      onDeleted();
+    } catch (caught) {
+      if (caught instanceof ApiRequestError && caught.status === 401) {
+        router.replace("/login");
+        return;
+      }
+      if (caught instanceof ApiRequestError && caught.status === 404) {
+        setDeleteError("문서를 찾을 수 없거나 삭제 권한이 없습니다.");
+      } else if (caught instanceof ApiRequestError && caught.status === 409) {
+        setDeleteError("이미 삭제된 문서입니다.");
+      } else {
+        setDeleteError("문서를 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <>
       <div className="section-label">
         <span>분석 대기 문서</span>
         <span>{pending.length}건</span>
       </div>
+      {deleteError ? <p className="msg error">{deleteError}</p> : null}
       <div className="document-list">
         {pending.map((document) => (
           <div key={document.documentId} className="document-list-item">
@@ -286,6 +339,14 @@ function PendingDocuments({ documents }: { documents: MedicalDocumentListItem[] 
             </div>
             <div className="document-list-side">
               <span className="tag orange">{pendingStatusLabels[document.documentStatus]}</span>
+              <button
+                type="button"
+                className="btn-tiny btn-out"
+                disabled={deletingId !== null}
+                onClick={() => handleDelete(document.documentId)}
+              >
+                {deletingId === document.documentId ? "삭제 중…" : "삭제"}
+              </button>
             </div>
           </div>
         ))}
@@ -397,14 +458,54 @@ function DocumentsPageContent() {
     };
   }, [me, patientId, reloadKey]);
 
+  // 다른 환자의 목록이 남아 있으면 쓰지 않는다
+  const currentMedical = medical && medical.patientId === patientId ? medical : null;
+  const medicalDocuments = currentMedical?.items ?? [];
+  const hasPending = medicalDocuments.some(
+    (item) => item.documentStatus === "UPLOADED" || item.documentStatus === "PROCESSING"
+  );
+
+  // 분석 대기 문서가 있는 동안만 3초마다 의료문서 목록을 다시 받는다
+  useEffect(() => {
+    if (!hasPending) {
+      return;
+    }
+    let cancelled = false;
+    let busy = false;
+
+    async function tick() {
+      if (busy) {
+        return;
+      }
+      busy = true;
+      try {
+        const response = await fetchMedicalDocuments(patientId ?? undefined);
+        if (!cancelled) {
+          setMedical({ patientId, items: response.items, failed: false });
+        }
+      } catch {
+        // 보이던 목록은 그대로 두고 다음 주기에 다시 받습니다.
+      } finally {
+        busy = false;
+      }
+    }
+
+    const timer = window.setInterval(() => {
+      if (!document.hidden) {
+        tick();
+      }
+    }, 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [hasPending, patientId, reloadKey]);
+
   if (loading || !me) {
     return <PhoneFrame tab="documents"><p className="page-sub">불러오는 중…</p></PhoneFrame>;
   }
 
   const caregiverNeedsPatient = me.role === "CAREGIVER" && !patientId;
-  // 다른 환자의 목록이 남아 있으면 쓰지 않는다
-  const currentMedical = medical && medical.patientId === patientId ? medical : null;
-  const medicalDocuments = currentMedical?.items ?? [];
 
   return (
     <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
@@ -421,7 +522,10 @@ function DocumentsPageContent() {
         />
       ) : null}
 
-      <PendingDocuments documents={medicalDocuments} />
+      <PendingDocuments
+        documents={medicalDocuments}
+        onDeleted={() => setReloadKey((value) => value + 1)}
+      />
 
       <div className="section-label">
         <span>AI 설명 문서</span>
