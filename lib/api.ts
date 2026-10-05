@@ -192,6 +192,24 @@ export function withdrawAccount() {
   });
 }
 
+export type AccountRole = "PATIENT" | "CAREGIVER";
+
+export type LinkedAccounts = {
+  currentRole: Me["role"];
+  accounts: { role: AccountRole; name: string; current: boolean }[];
+};
+
+export function fetchLinkedAccounts() {
+  return api<LinkedAccounts>("/api/accounts");
+}
+
+export function switchAccount(role: AccountRole) {
+  return api<Me>("/api/accounts/switch", {
+    method: "POST",
+    body: JSON.stringify({ role })
+  });
+}
+
 export async function logout() {
   await fetch(`${API_BASE}/logout`, {
     method: "POST",
