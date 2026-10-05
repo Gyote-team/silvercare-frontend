@@ -77,6 +77,10 @@ function HomeBody() {
             setLiveMsg(`${row.counterpartName} 님에게서 연결 요청이 왔습니다.`);
             break;
           }
+          if (before?.status === "REQUESTED" && row.status === "ACTIVE") {
+            setLiveMsg(`${row.counterpartName} 님과 보호자 연결이 완료되었습니다.`);
+            break;
+          }
         }
       } catch {
         // 다음 주기에 다시 받습니다.
@@ -112,10 +116,18 @@ function HomeBody() {
   }
 
   async function mutate(id: string, action: "accept" | "reject" | "cancel") {
+    const relation = relations.find((row) => row.id === id);
     const rows = action === "cancel"
       ? await api<CareRelation[]>(`/api/care-relations/${id}/request`, { method: "DELETE" })
       : await api<CareRelation[]>(`/api/care-relations/${id}/${action}`, { method: "POST" });
     setRelations(rows);
+    if (action === "accept") {
+      setLiveMsg(`${relation?.counterpartName ?? "보호자"} 님과 보호자 연결이 완료되었습니다.`);
+    } else if (action === "reject") {
+      setLiveMsg("연결 요청을 거절했습니다.");
+    } else {
+      setLiveMsg("연결 요청을 취소했습니다.");
+    }
   }
 
   async function copyInvite() {
