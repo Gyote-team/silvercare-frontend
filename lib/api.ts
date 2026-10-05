@@ -112,6 +112,28 @@ export type AiDocumentListQuery = {
   size?: number;
 };
 
+export type HealthRecord = {
+  id: string;
+  patientId: string;
+  visitId: string | null;
+  authorName: string;
+  authorUserId: string;
+  inputType: "TEXT" | "STT";
+  content: string;
+  recordedAt: string;
+  proxyWritten: boolean;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+};
+
+export type HealthRecordCreateRequest = {
+  patientId?: string;
+  inputType: "TEXT" | "STT";
+  content: string;
+  idempotencyKey: string;
+};
+
 export class ApiRequestError extends Error {
   status: number;
   error: string;
@@ -208,4 +230,16 @@ export function kakaoLoginUrl() {
 
 export function deleteDocument(documentId: string) {
   return api<void>(`/api/documents/${encodeURIComponent(documentId)}`, { method: "DELETE" });
+}
+
+export function fetchHealthRecords(patientId?: string) {
+  const suffix = patientId ? `?patientId=${encodeURIComponent(patientId)}` : "";
+  return api<HealthRecord[]>(`/api/health-records${suffix}`);
+}
+
+export function createHealthRecord(request: HealthRecordCreateRequest) {
+  return api<HealthRecord>("/api/health-records", {
+    method: "POST",
+    body: JSON.stringify(request)
+  });
 }
