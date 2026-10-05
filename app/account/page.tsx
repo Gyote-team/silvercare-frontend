@@ -62,9 +62,10 @@ export default function AccountPage() {
   }
 
   async function copyCaregiverInvite() {
-    if (!current.inviteCode) return;
+    const code = current?.inviteCode;
+    if (!code) return;
     try {
-      await navigator.clipboard.writeText(current.inviteCode);
+      await navigator.clipboard.writeText(code);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
