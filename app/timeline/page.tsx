@@ -1,18 +1,24 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useMe } from "@/lib/useMe";
 
-export default function TimelinePage() {
+function TimelineBody() {
   const { me, loading } = useMe();
+  const params = useSearchParams();
   if (loading || !me) {
     return <PhoneFrame tab="timeline"><p className="page-sub">불러오는 중…</p></PhoneFrame>;
   }
+  const patientId = params.get("patientId");
+  const viewingOwnProfile = !patientId || patientId === me.patientId;
+  const targetName = params.get("name") ?? (viewingOwnProfile ? me.name : "연결된 개인");
 
   return (
-    <PhoneFrame tab="timeline" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
-      <div className="page-title">진료 타임라인</div>
-      <p className="page-sub">Visit 단위로 기록과 서류, 일정이 시간순으로 이어져요.</p>
+    <PhoneFrame tab="timeline" userName={me.name}>
+      <div className="page-title">{viewingOwnProfile ? "내 진료 타임라인" : `${targetName} 님 진료 타임라인`}</div>
+      <p className="page-sub">{viewingOwnProfile ? "내" : `${targetName} 님의`} Visit 단위 기록과 서류, 일정이 시간순으로 이어져요.</p>
       <div className="timeline-wrap">
         <div className="visit-node future">
           <div className="visit-date">10월 15일 (예정)</div>
@@ -49,4 +55,8 @@ export default function TimelinePage() {
       </div>
     </PhoneFrame>
   );
+}
+
+export default function TimelinePage() {
+  return <Suspense><TimelineBody /></Suspense>;
 }

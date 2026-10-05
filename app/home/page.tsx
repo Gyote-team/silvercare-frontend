@@ -37,6 +37,9 @@ function HomeBody() {
   const recordsHref = activePatientId
     ? `/records?patientId=${encodeURIComponent(activePatientId)}&name=${encodeURIComponent(targetName)}`
     : "/records";
+  const timelineHref = activePatientId
+    ? `/timeline?patientId=${encodeURIComponent(activePatientId)}&name=${encodeURIComponent(targetName)}`
+    : "/timeline";
 
   useEffect(() => {
     if (me) {
@@ -279,7 +282,7 @@ function HomeBody() {
           <h3>{viewingOwnProfile ? "내 병원 서류" : `${targetName} 병원 서류`}</h3>
           <p>{viewingOwnProfile ? "내 서류를 촬영해 등록하기" : "대신 촬영해 등록하기"}</p>
         </Link>
-        <Link className="action-card a4" href="/timeline">
+        <Link className="action-card a4" href={timelineHref}>
           <div className="icon">🗂️</div>
           <h3>{viewingOwnProfile ? "내 지난 진료" : `${targetName} 지난 진료`}</h3>
           <p>Visit 타임라인 확인</p>
@@ -288,9 +291,9 @@ function HomeBody() {
 
       <div className="section-label">
         <span>{viewingOwnProfile ? "내 진료 전 AI 요약" : `${targetName} 님 진료 전 AI 요약`}</span>
-        <Link href="/timeline">전체보기 ›</Link>
+        <Link href={timelineHref}>전체보기 ›</Link>
       </div>
-      <Link className="summary-preview" href="/timeline">
+      <Link className="summary-preview" href={timelineHref}>
         <span className="tag">10월 15일 재진 대비 준비 중</span>
         <p>{viewingOwnProfile ? "내" : `${targetName} 님의`} 최근 2주간 무릎 불편감 <b>7회</b> 기록됨 (최초 8월 12일). 계단 이용 시 특히 불편, 최근 기록 빈도 증가 추세.</p>
         <div className="go">의료진에게 전달할 요약 전체 보기 →</div>
