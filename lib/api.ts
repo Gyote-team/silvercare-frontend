@@ -137,11 +137,13 @@ export type HealthRecordCreateRequest = {
 export class ApiRequestError extends Error {
   status: number;
   error: string;
+  code: string | null;
 
-  constructor(status: number, error: string) {
+  constructor(status: number, error: string, code: string | null = null) {
     super(error);
     this.status = status;
     this.error = error;
+    this.code = code;
   }
 }
 
@@ -171,7 +173,11 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiRequestError(401, "unauthorized");
   }
   if (!response.ok) {
-    throw new ApiRequestError(response.status, data?.message ?? data?.error ?? data?.code ?? "fail");
+    throw new ApiRequestError(
+      response.status,
+      data?.message ?? data?.error ?? data?.code ?? "fail",
+      typeof data?.code === "string" ? data.code : null
+    );
   }
   return data as T;
 }

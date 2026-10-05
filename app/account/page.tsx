@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
-import { api, logout, type CareRelation } from "@/lib/api";
+import { api, ApiRequestError, logout, type CareRelation } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
 function formatDate(value: string | null) {
@@ -45,10 +45,10 @@ export default function AccountPage() {
       setRelations(rows); setInviteCode(""); setShowConnect(false);
       setMessage("연결 요청을 보냈습니다. 상대방이 수락하면 기록을 볼 수 있어요.");
     } catch (error) {
-      const key = error && typeof error === "object" && "error" in error ? String(error.error) : "fail";
-      if (key === "code") setMessage("없는 코드입니다. 개인이 보여 준 코드를 다시 넣어 주세요.");
-      else if (key === "self") setMessage("자기 자신과는 연결할 수 없습니다.");
-      else if (key === "duplicate") setMessage("이미 요청했거나 연결되어 있습니다.");
+      const code = error instanceof ApiRequestError ? error.code : null;
+      if (code === "CARE_RELATION_002") setMessage("없는 코드입니다. 개인이 보여 준 코드를 다시 넣어 주세요.");
+      else if (code === "CARE_RELATION_003") setMessage("자기 자신과는 연결할 수 없습니다.");
+      else if (code === "CARE_RELATION_004") setMessage("이미 요청했거나 연결되어 있습니다.");
       else setMessage("연결 요청을 보내지 못했습니다. 초대 코드를 확인해 주세요.");
     } finally {
       setRequesting(false);
