@@ -268,7 +268,21 @@ export default function AiDocumentDetailPage() {
               {section.items.map((item) => (
                 <div key={item.sentenceId} className="document-item document-item-evidence">
                   <strong>{item.label}</strong>
-                  <span>{item.value ?? "값 없음"}{item.unit ? ` ${item.unit}` : ""}</span>
+                  {(() => {
+                    const fact = facts?.items.find(
+                      (entry) => entry.factId === item.sourceItemId || entry.factId === item.sentenceId
+                    );
+                    const displayValue = fact ? fact.displayValue : item.value;
+                    const displayUnit = fact ? fact.displayUnit : item.unit;
+                    const mismatched = fact?.validationStatus === "MISMATCHED";
+                    return mismatched ? (
+                      <small className="document-fact-warning">
+                        원문과 일치하지 않아 표시값을 숨겼습니다. 원문 근거를 확인해 주세요.
+                      </small>
+                    ) : (
+                      <span>{displayValue ?? "값 없음"}{displayUnit ? ` ${displayUnit}` : ""}</span>
+                    );
+                  })()}
                   {item.hasSource && citations
                     ? (() => {
                         const matchedCitations = citations.citations.filter((entry) => {
