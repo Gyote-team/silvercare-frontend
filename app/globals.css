@@ -1119,6 +1119,95 @@ textarea.record-area {
   margin: 0 auto 12px;
 }
 
+.doc-upload-zone .upload-field {
+  display: block;
+  margin-top: 14px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.doc-upload-zone select,
+.doc-upload-zone .upload-file-row {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 6px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.doc-upload-zone select {
+  display: block;
+  padding: 12px;
+}
+
+.doc-upload-zone .upload-file-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 5px 5px 12px;
+  cursor: pointer;
+}
+
+.doc-upload-zone .upload-file-row:focus-within { border-color: var(--deep-green); }
+
+.doc-upload-zone .upload-file-row input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  clip-path: inset(50%);
+}
+
+.doc-upload-zone .upload-file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.doc-upload-zone .upload-file-name.empty {
+  color: var(--ink-soft);
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.doc-upload-zone .upload-file-button {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--pale-green);
+  color: var(--deep-green);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.doc-upload-zone .upload-file-clear {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.doc-upload-zone > button { margin-top: 16px; }
+.doc-upload-zone button:disabled { opacity: 0.6; cursor: not-allowed; }
+.doc-upload-zone .msg { margin: 14px 0 0; }
+
 .doc-chip-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
 
 .doc-chip {
@@ -1712,6 +1801,7 @@ textarea.record-area {
   color: var(--mid-green);
   font-size: 11.5px;
   font-weight: 700;
+
 }
 
 .brand-logo-image {
