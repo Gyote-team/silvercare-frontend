@@ -101,6 +101,61 @@ export type AiDocumentExplanationStatusResponse = {
   originalDocumentUrl: string;
 };
 
+export type AiDocumentCitation = {
+  citationId: string;
+  sectionId: string | null;
+  sentenceId: string | null;
+  sourceItemId: string | null;
+  chunkId: string | null;
+  pageId: string | null;
+  pageNo: number | null;
+  sourceText: string | null;
+  anchorId: string | null;
+  sourceBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+  pageWidthPx: number | null;
+  pageHeightPx: number | null;
+};
+
+export type AiDocumentFact = {
+  factId: string;
+  factType: string;
+  displayValue: string | null;
+  originalValue: string | null;
+  displayUnit: string | null;
+  originalUnit: string | null;
+  validationStatus: "MATCHED" | "MISMATCHED";
+  pageNo: number | null;
+  sourceText: string | null;
+  anchorId: string | null;
+};
+
+export type AiDocumentFactsResponse = {
+  documentId: string;
+  items: AiDocumentFact[];
+};
+
+export type AiDocumentCitationsResponse = {
+  documentId: string;
+  citations: AiDocumentCitation[];
+};
+
+export type AiDocumentPageResponse = {
+  documentId: string;
+  pageNo: number;
+  pageUrl: string;
+  expiresAt: string;
+  renderedPage: boolean;
+  anchorId: string | null;
+  sourceBox: AiDocumentCitation["sourceBox"];
+  pageWidthPx: number | null;
+  pageHeightPx: number | null;
+};
+
 export type AiDocumentListQuery = {
   patientId?: string;
   visitId?: string;
@@ -175,8 +230,30 @@ export function fetchAiDocumentSections(documentId: string, sectionType?: string
 }
 
 export function fetchAiDocumentExplanationStatus(documentId: string) {
+  // 문서 AI 설명 생성 상태를 조회한다.
   return api<AiDocumentExplanationStatusResponse>(
     `/api/ai-documents/${encodeURIComponent(documentId)}/explanation-status`
+  );
+}
+
+export function fetchAiDocumentCitations(documentId: string) {
+  // 문서 설명에 연결된 원문 근거 목록을 조회한다.
+  return api<AiDocumentCitationsResponse>(
+    `/api/ai-documents/${encodeURIComponent(documentId)}/citations`
+  );
+}
+
+export function fetchAiDocumentFacts(documentId: string) {
+  return api<AiDocumentFactsResponse>(
+    `/api/ai-documents/${encodeURIComponent(documentId)}/facts`
+  );
+}
+
+export function fetchAiDocumentPage(documentId: string, pageNo: number, anchorId?: string | null) {
+  const suffix = anchorId ? `?anchorId=${encodeURIComponent(anchorId)}` : "";
+  // 원문 페이지 열기에 필요한 서명 URL을 조회한다.
+  return api<AiDocumentPageResponse>(
+    `/api/ai-documents/${encodeURIComponent(documentId)}/pages/${pageNo}${suffix}`
   );
 }
 
