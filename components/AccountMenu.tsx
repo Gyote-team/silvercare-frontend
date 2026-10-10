@@ -70,7 +70,7 @@ export function AccountMenu({ userName }: { userName: string }) {
     const label = ACCOUNT_LABEL[switchTarget];
     const exists = linked.accounts.some((account) => account.role === switchTarget);
     if (!exists) {
-      const ok = window.confirm(`아직 ${label}이 없어요. ${label}을 새로 만들고 전환할까요?`);
+      const ok = window.confirm(`${label} 화면을 처음 사용합니다. 같은 로그인으로 전환할까요?`);
       if (!ok) {
         return;
       }

@@ -271,6 +271,25 @@ export function withdrawAccount() {
 
 export type AccountRole = "PATIENT" | "CAREGIVER";
 
+export type HealthRecord = {
+  recordId: string;
+  patientId: string;
+  authorUserId: string;
+  authorName: string;
+  visitId: string | null;
+  body: string;
+  recordedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  proxyWritten: boolean;
+};
+
+export type HealthRecordPage = {
+  items: HealthRecord[];
+  nextCursor: string | null;
+  hasNext: boolean;
+};
+
 export type LinkedAccounts = {
   currentRole: Me["role"];
   accounts: { role: AccountRole; name: string; current: boolean }[];
