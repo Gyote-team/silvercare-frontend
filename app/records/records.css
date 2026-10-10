@@ -1,0 +1,38 @@
+.records-screen { background: #f5f9fc; padding-bottom: 32px; }
+.records-heading { margin: 6px 0 22px; }
+.records-eyebrow { display: block; color: #63829a; font-size: 12px; font-weight: 600; letter-spacing: .04em; margin-bottom: 7px; }
+.records-heading .page-title { color: #233f53; font-size: 25px; margin-bottom: 8px; letter-spacing: -.04em; }
+.records-intro { font-size: 14px; line-height: 1.7; color: #6b8192; margin: 0; }
+.records-owner { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.records-avatar { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 15px; background: #e3eff8; color: #447a9d; font-size: 17px; font-weight: 700; }
+.records-owner strong { display: block; color: #3a566b; font-size: 14px; margin-bottom: 4px; }
+.records-owner div > span { display: block; color: #758999; font-size: 12px; line-height: 1.6; }
+.records-compose { padding: 20px; background: #fff; border: 1px solid #dfeaf2; border-radius: 22px; box-shadow: 0 5px 22px #284e6a06; }
+.records-compose-top { display: flex; align-items: center; gap: 8px; color: #3c5c72; font-size: 14px; font-weight: 700; margin-bottom: 20px; }
+.records-compose-icon { display: grid; place-items: center; background: #ecf5fc; border-radius: 9px; width: 30px; height: 30px; font-size: 22px; color: #4a92c6; }
+.records-date { margin-left: auto; color: #8395a3; font-size: 12px; font-weight: 400; white-space: nowrap; }
+.records-compose label { display: block; color: #3d5669; font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.records-compose textarea.record-area { display: block; width: 100%; min-height: 160px; padding: 16px; border: 1px solid #d9e5ee; border-radius: 14px; background: #f9fbfd; color: #29465a; font: inherit; font-size: 15px; line-height: 1.8; resize: vertical; outline: none; margin: 0; box-sizing: border-box; }
+.records-compose textarea.record-area::placeholder { color: #92a3b1; }
+.records-compose textarea.record-area:focus { border-color: #559dd0; box-shadow: 0 0 0 3px #559dd01a; background: #fff; }
+.records-input-meta { display: flex; justify-content: space-between; gap: 8px; color: #8597a5; font-size: 11px; margin-top: 9px; }
+.records-prompts { display: flex; flex-wrap: wrap; gap: 7px; margin: 16px 0 20px; }
+.records-prompts button { background: #f1f6fa; border: 1px solid #e1ebf2; padding: 8px 12px; border-radius: 20px; color: #587389; font-size: 12px; cursor: pointer; min-height: 36px; }
+.records-prompts button:hover { background: #e6f1fa; }
+.records-prompts button.is-active { background: #e1f0fc; border-color: #83b6dd; color: #2579b6; font-weight: 600; }
+.records-compose .records-save { width: 100%; min-height: 50px; border-radius: 13px; background: #348ed0; border: 0; color: #fff; font-size: 15px; box-shadow: 0 4px 10px #348ed01a; }
+.records-compose .records-save:disabled { background: #dfeaf3; color: #7c96aa; box-shadow: none; cursor: default; }
+.records-list-heading { display: flex; align-items: center; justify-content: space-between; margin: 27px 2px 13px; }
+.records-list-heading h2 { margin: 0; color: #344f63; font-size: 16px; letter-spacing: -.02em; }
+.records-list-heading > span { color: #8a9ba8; font-size: 12px; }
+.records-empty { text-align: center; border: 1px dashed #d6e3ed; border-radius: 18px; padding: 25px 16px; background: #f8fbfd; }
+.records-empty-icon { display: grid; place-items: center; margin: 0 auto 12px; width: 42px; height: 42px; background: #e9f1f7; color: #83a1b8; border-radius: 14px; font-size: 26px; }
+.records-empty strong { display: block; color: #5c788d; font-size: 14px; font-weight: 600; }
+.records-empty p { color: #879aa9; font-size: 12px; line-height: 1.8; margin: 7px 0 0; }
+.records-entry { border: 1px solid #dfeaf2; border-radius: 18px; padding: 18px; box-shadow: none; }
+.records-entry > p:first-child { font-size: 15px; line-height: 1.8; color: #334f63; margin-top: 0; overflow-wrap: anywhere; }
+.records-entry .row-actions { justify-content: flex-end; border-top: 1px solid #edf2f6; padding-top: 10px; }
+.records-target select { display: block; width: 100%; border: 1px solid #d9e5ee; border-radius: 12px; padding: 12px; margin-top: 10px; background: #f9fbfd; color: #3d5669; font: inherit; }
+.records-writer { color: #728a9c; font-size: 12px; margin: -6px 0 16px; }
+.records-screen button:focus-visible { outline: 3px solid #559dd080; outline-offset: 3px; }
+@media(max-width: 360px) { .records-compose { padding: 15px; } .records-input-meta { flex-wrap: wrap; } }

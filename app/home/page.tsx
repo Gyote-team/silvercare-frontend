@@ -151,7 +151,7 @@ function HomeBody() {
           <div className="greeting">
             안녕하세요
             <div className="greeting-row">
-              <b>{me.name} 님</b>
+              <b>{me.name} 님 · {patient ? "개인 계정" : "보호자 계정"}</b>
             </div>
             {connected.map((row) => (
               <section key={row.id} className="bond-card">
@@ -262,13 +262,13 @@ function HomeBody() {
       <div className="action-grid">
         <Link className="action-card a1" href="/records">
           <div className="icon">📝</div>
-          <h3>오늘 상태 기록</h3>
+          <h3>{patient ? "내 건강 상태 기록" : "개인 건강 상태 기록"}</h3>
           <p>텍스트나 음성으로 간단히</p>
         </Link>
-        <Link className="action-card a2" href="/records">
+        <Link className="action-card a2" href="/account">
           <div className="icon">🤝</div>
-          <h3>보호자 기록</h3>
-          <p>가족이 대신 기록하기</p>
+          <h3>{patient ? "보호자 연결 관리" : "돌보는 개인 관리"}</h3>
+          <p>연결 요청과 연결 상태 확인</p>
         </Link>
         <Link className="action-card a3" href={documentsHref}>
           <div className="icon">📄</div>
