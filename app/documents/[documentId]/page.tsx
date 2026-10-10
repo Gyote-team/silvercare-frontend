@@ -10,10 +10,16 @@ import {
   deleteDocument,
   fetchAiDocument,
   fetchAiDocumentExplanationStatus,
+  fetchAiDocumentCitations,
+  fetchAiDocumentFacts,
+  fetchAiDocumentPage,
   fetchAiDocumentSections,
   type AiDocumentDetailResponse,
   type AiDocumentExplanationStatusResponse,
-  type AiDocumentSectionsResponse
+  type AiDocumentSectionsResponse,
+  type AiDocumentCitationsResponse,
+  type AiDocumentFactsResponse,
+  type AiDocumentPageResponse
 } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
@@ -26,10 +32,12 @@ const documentTypeLabels: Record<string, string> = {
 };
 
 function documentTypeLabel(type: string) {
+  // 문서 유형 코드를 사용자에게 익숙한 한글 라벨로 변환한다.
   return documentTypeLabels[type] ?? "의료문서";
 }
 
 function formatDate(value: string) {
+  // 서버의 ISO 일시를 화면 표시용 한국어 날짜로 변환한다.
   return new Intl.DateTimeFormat("ko-KR", {
     dateStyle: "medium",
     timeStyle: "short"
@@ -37,11 +45,38 @@ function formatDate(value: string) {
 }
 
 function jobStatusLabel(status: string) {
+  // AI 설명 작업 상태를 사용자 안내 문구로 변환한다.
   if (status === "SUCCEEDED") return "AI 설명 완료";
   if (status === "RUNNING") return "AI 설명 생성 중";
   if (status === "FAILED") return "AI 설명 생성 실패";
   if (status === "CANCELED") return "AI 설명 취소됨";
   return "AI 설명 대기 중";
+}
+
+const sectionTypeLabels: Record<string, string> = {
+  LAB_RESULT: "진단 정보",
+  MEDICATION: "복약 안내",
+  CAUTION: "주의사항",
+  FOLLOW_UP: "추적 관리",
+  TEST_SCHEDULE: "검사 일정"
+};
+
+const sectionTypeDescriptions: Record<string, string> = {
+  LAB_RESULT: "소견서에 적힌 진단과 주요 상태를 확인하세요.",
+  CAUTION: "지금 확인하거나 다음 진료에서 상담할 내용을 모았어요.",
+  MEDICATION: "복용 중인 약과 복약 관련 안내입니다.",
+  FOLLOW_UP: "다음 진료 전까지 추적해서 볼 내용입니다.",
+  TEST_SCHEDULE: "예정된 검사와 일정을 확인하세요."
+};
+
+function sectionTypeLabel(type: string) {
+  // 설명 섹션 유형을 화면용 한글 라벨로 변환한다.
+  return sectionTypeLabels[type] ?? "건강 안내";
+}
+
+function sectionTypeDescription(type: string) {
+  // 설명 섹션의 목적을 짧은 안내 문구로 제공한다.
+  return sectionTypeDescriptions[type] ?? "이 문서에서 확인할 건강 안내입니다.";
 }
 
 export default function AiDocumentDetailPage() {
@@ -57,10 +92,15 @@ export default function AiDocumentDetailPage() {
   const [detail, setDetail] = useState<AiDocumentDetailResponse | null>(null);
   const [sections, setSections] = useState<AiDocumentSectionsResponse | null>(null);
   const [status, setStatus] = useState<AiDocumentExplanationStatusResponse | null>(null);
+  const [citations, setCitations] = useState<AiDocumentCitationsResponse | null>(null);
+  const [facts, setFacts] = useState<AiDocumentFactsResponse | null>(null);
+  const [openedPage, setOpenedPage] = useState<AiDocumentPageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [citationError, setCitationError] = useState("");
+  const [expandedCitationId, setExpandedCitationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!me || !documentId) {
@@ -83,15 +123,19 @@ export default function AiDocumentDetailPage() {
         return;
       }
 
-      const [nextDetail, nextSections] = await Promise.all([
+      const [nextDetail, nextSections, nextCitations, nextFacts] = await Promise.all([
         fetchAiDocument(documentId),
-        fetchAiDocumentSections(documentId)
+        fetchAiDocumentSections(documentId),
+        fetchAiDocumentCitations(documentId),
+        fetchAiDocumentFacts(documentId)
       ]);
       if (cancelled) {
         return;
       }
       setDetail(nextDetail);
       setSections(nextSections);
+      setCitations(nextCitations);
+      setFacts(nextFacts);
       setLoading(false);
     }
 
@@ -115,11 +159,19 @@ export default function AiDocumentDetailPage() {
   }, [documentId, me]);
 
   if (loadingMe || !me || loading) {
-    return <PhoneFrame tab="documents"><p className="page-sub">문서를 불러오는 중…</p></PhoneFrame>;
+    return (
+      <PhoneFrame tab="documents">
+        <p className="page-sub">문서를 불러오는 중…</p>
+      </PhoneFrame>
+    );
   }
 
   async function onDelete() {
-    const ok = window.confirm("이 문서를 삭제할까요?\n삭제한 문서는 문서함에서 사라지고, 이 문서에서 만들어진 확인 전 할 일도 함께 취소됩니다.");
+    // 문서 삭제를 확인하고 성공하면 문서함으로 돌아간다.
+    const ok = window.confirm(
+      "이 문서를 삭제할까요?\n삭제한 문서는 문서함에서 사라지고, " +
+        "이 문서에서 만들어진 확인 전 할 일도 함께 취소됩니다."
+    );
     if (!ok) {
       return;
     }
@@ -144,9 +196,25 @@ export default function AiDocumentDetailPage() {
     }
   }
 
+  async function openCitationPage(pageNo: number | null, anchorId?: string | null) {
+    // 인용된 원문 페이지의 서명 URL을 받아 새 탭으로 연다.
+    if (!pageNo) {
+      setCitationError("페이지 정보가 없는 원문 근거입니다.");
+      return;
+    }
+    try {
+      const page = await fetchAiDocumentPage(documentId, pageNo, anchorId);
+      setOpenedPage(page);
+    } catch {
+      setCitationError("원문 페이지를 열지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+  }
+
   return (
     <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
-      <Link href={documentsHref} className="document-back">← 문서함</Link>
+      <Link href={documentsHref} className="document-back">
+        ← 문서함
+      </Link>
       {error ? <p className="msg error">{error}</p> : null}
 
       {status && status.jobStatus !== "SUCCEEDED" ? (
@@ -174,27 +242,104 @@ export default function AiDocumentDetailPage() {
           {detail.content ? (
             <section className="card document-detail-content">
               <h2>AI 설명</h2>
+              <small className="document-evidence-notice">
+                원문 근거를 바탕으로 의료 내용을 이해하기 쉽게 풀어쓴 설명입니다.
+              </small>
               <p>{detail.content}</p>
             </section>
           ) : null}
 
-          <div className="section-label">
-            <span>설명 섹션</span>
-            <span>{detail.sectionCount}개</span>
+          <div className="document-sections-heading">
+            <div>
+              <h2>이 문서에서 확인한 내용</h2>
+              <p>소견서의 핵심 내용을 읽기 쉽게 정리했어요.</p>
+            </div>
+            <span>{detail.sectionCount}개 항목</span>
           </div>
           {sections.sections.map((section) => (
             <section key={section.sectionId} className="card document-section">
-              <span className="tag">{section.sectionType}</span>
-              <h2>{section.title}</h2>
+              <div className="document-section-header">
+                <span className="tag">{sectionTypeLabel(section.sectionType)}</span>
+                <h2>{section.title}</h2>
+                <p className="document-section-description">
+                  {sectionTypeDescription(section.sectionType)}
+                </p>
+              </div>
               {section.items.map((item) => (
-                <div key={item.sentenceId} className="document-item">
+                <div key={item.sentenceId} className="document-item document-item-evidence">
                   <strong>{item.label}</strong>
-                  <span>{item.value ?? "값 없음"}{item.unit ? ` ${item.unit}` : ""}</span>
-                  {item.hasSource ? <small>📎 원문 근거 연결됨</small> : null}
+                  {(() => {
+                    const fact = facts?.items.find(
+                      (entry) => entry.factId === item.sourceItemId || entry.factId === item.sentenceId
+                    );
+                    const displayValue = fact ? fact.displayValue : item.value;
+                    const displayUnit = fact ? fact.displayUnit : item.unit;
+                    const mismatched = fact?.validationStatus === "MISMATCHED";
+                    return mismatched ? (
+                      <small className="document-fact-warning">
+                        원문과 일치하지 않아 표시값을 숨겼습니다. 원문 근거를 확인해 주세요.
+                      </small>
+                    ) : (
+                      <span>{displayValue ?? "값 없음"}{displayUnit ? ` ${displayUnit}` : ""}</span>
+                    );
+                  })()}
+                  {item.hasSource && citations
+                    ? (() => {
+                        const matchedCitations = citations.citations.filter((entry) => {
+                          if (item.sentenceId && entry.sentenceId === item.sentenceId) {
+                            return true;
+                          }
+                          return Boolean(
+                            item.sourceItemId &&
+                              entry.sourceItemId === item.sourceItemId
+                          );
+                        });
+                        if (matchedCitations.length === 0) {
+                          return <small>📎 원문 위치를 확인할 수 없습니다.</small>;
+                        }
+                        return (
+                          <div className="evidence-toggle">
+                            {matchedCitations.map((citation) => {
+                              const expanded = expandedCitationId === citation.citationId;
+                              return <div key={citation.citationId} className="evidence-citation">
+                              <button
+                                className="evidence-toggle-button"
+                                type="button"
+                                aria-expanded={expanded}
+                                onClick={() => {
+                                  setCitationError("");
+                                  setExpandedCitationId(expanded ? null : citation.citationId);
+                                }}
+                              >
+                                {expanded ? "⌃ 원문 근거 접기" : "⌄ 원문 근거 보기"}
+                              </button>
+                              {expanded ? <div className="evidence-detail">
+                                <p>{citation.sourceText ?? "원문 텍스트가 없습니다."}</p>
+                                <small>{citation.pageNo ? `${citation.pageNo}페이지` : "페이지 정보 없음"}</small>
+                                {citation.pageNo ? <button className="evidence-page-button" type="button" onClick={() => openCitationPage(citation.pageNo, citation.anchorId)}>원문 페이지 열기</button> : null}
+                              </div> : null}
+                              </div>;
+                            })}
+                          </div>
+                        );
+                      })()
+                    : null}
                 </div>
               ))}
             </section>
           ))}
+
+          {citationError ? <p className="msg error">{citationError}</p> : null}
+
+          {openedPage ? (
+            <section className="card evidence-page-preview">
+              <button className="evidence-page-close" type="button" onClick={() => setOpenedPage(null)}>닫기</button>
+              {openedPage.renderedPage ? <div className="evidence-page-image-wrap">
+                <img src={openedPage.pageUrl} alt={`${openedPage.pageNo}페이지 원문`} />
+                {openedPage.sourceBox && openedPage.pageWidthPx && openedPage.pageHeightPx ? <span className="evidence-source-highlight" style={{ left: `${openedPage.sourceBox.x / openedPage.pageWidthPx * 100}%`, top: `${openedPage.sourceBox.y / openedPage.pageHeightPx * 100}%`, width: `${openedPage.sourceBox.width / openedPage.pageWidthPx * 100}%`, height: `${openedPage.sourceBox.height / openedPage.pageHeightPx * 100}%` }} /> : null}
+              </div> : <iframe className="evidence-page-pdf" title={`${openedPage.pageNo}페이지 원문`} src={`${openedPage.pageUrl}#page=${openedPage.pageNo}`} />}
+            </section>
+          ) : null}
 
           {status?.originalDocumentUrl ? (
             <a
@@ -212,7 +357,13 @@ export default function AiDocumentDetailPage() {
       {!error && status ? (
         <>
           {deleteError ? <p className="msg error">{deleteError}</p> : null}
-          <button className="btn-out" type="button" style={{ marginTop: 12 }} disabled={deleting} onClick={onDelete}>
+          <button
+            className="btn-out"
+            type="button"
+            style={{ marginTop: 12 }}
+            disabled={deleting}
+            onClick={onDelete}
+          >
             {deleting ? "삭제 중…" : "문서 삭제"}
           </button>
         </>

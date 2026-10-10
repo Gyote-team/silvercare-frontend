@@ -101,6 +101,61 @@ export type AiDocumentExplanationStatusResponse = {
   originalDocumentUrl: string;
 };
 
+export type AiDocumentCitation = {
+  citationId: string;
+  sectionId: string | null;
+  sentenceId: string | null;
+  sourceItemId: string | null;
+  chunkId: string | null;
+  pageId: string | null;
+  pageNo: number | null;
+  sourceText: string | null;
+  anchorId: string | null;
+  sourceBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+  pageWidthPx: number | null;
+  pageHeightPx: number | null;
+};
+
+export type AiDocumentFact = {
+  factId: string;
+  factType: string;
+  displayValue: string | null;
+  originalValue: string | null;
+  displayUnit: string | null;
+  originalUnit: string | null;
+  validationStatus: "MATCHED" | "MISMATCHED";
+  pageNo: number | null;
+  sourceText: string | null;
+  anchorId: string | null;
+};
+
+export type AiDocumentFactsResponse = {
+  documentId: string;
+  items: AiDocumentFact[];
+};
+
+export type AiDocumentCitationsResponse = {
+  documentId: string;
+  citations: AiDocumentCitation[];
+};
+
+export type AiDocumentPageResponse = {
+  documentId: string;
+  pageNo: number;
+  pageUrl: string;
+  expiresAt: string;
+  renderedPage: boolean;
+  anchorId: string | null;
+  sourceBox: AiDocumentCitation["sourceBox"];
+  pageWidthPx: number | null;
+  pageHeightPx: number | null;
+};
+
 export type AiDocumentListQuery = {
   patientId?: string;
   visitId?: string;
@@ -123,7 +178,7 @@ export class ApiRequestError extends Error {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
-  if (init?.body && !headers.has("Content-Type")) {
+  if (init?.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
   if (!headers.has("Accept")) {
@@ -175,8 +230,30 @@ export function fetchAiDocumentSections(documentId: string, sectionType?: string
 }
 
 export function fetchAiDocumentExplanationStatus(documentId: string) {
+  // 문서 AI 설명 생성 상태를 조회한다.
   return api<AiDocumentExplanationStatusResponse>(
     `/api/ai-documents/${encodeURIComponent(documentId)}/explanation-status`
+  );
+}
+
+export function fetchAiDocumentCitations(documentId: string) {
+  // 문서 설명에 연결된 원문 근거 목록을 조회한다.
+  return api<AiDocumentCitationsResponse>(
+    `/api/ai-documents/${encodeURIComponent(documentId)}/citations`
+  );
+}
+
+export function fetchAiDocumentFacts(documentId: string) {
+  return api<AiDocumentFactsResponse>(
+    `/api/ai-documents/${encodeURIComponent(documentId)}/facts`
+  );
+}
+
+export function fetchAiDocumentPage(documentId: string, pageNo: number, anchorId?: string | null) {
+  const suffix = anchorId ? `?anchorId=${encodeURIComponent(anchorId)}` : "";
+  // 원문 페이지 열기에 필요한 서명 URL을 조회한다.
+  return api<AiDocumentPageResponse>(
+    `/api/ai-documents/${encodeURIComponent(documentId)}/pages/${pageNo}${suffix}`
   );
 }
 
@@ -224,4 +301,65 @@ export function kakaoLoginUrl() {
 
 export function deleteDocument(documentId: string) {
   return api<void>(`/api/documents/${encodeURIComponent(documentId)}`, { method: "DELETE" });
+}
+
+// 의료문서 목록의 문서 한 건(분석 전 문서 포함)
+export type MedicalDocumentListItem = {
+  documentId: string;
+  visitId: string;
+  patientId: string;
+  documentName: string;
+  documentType: string;
+  visitedOn: string | null;
+  author: { name: string; role: string };
+  documentStatus: string;
+  latestAiJobStatus: string | null;
+  resultStatus: string | null;
+  statusChangedAt: string | null;
+  retryable: boolean;
+  createdAt: string;
+};
+
+// 의료문서 목록 조회 응답
+export type MedicalDocumentListResponse = {
+  items: MedicalDocumentListItem[];
+  nextCursor: string | null;
+};
+
+// 문서 업로드 응답
+export type DocumentUploadResponse = {
+  documentId: string;
+  visitId: string;
+  mimeType: string;
+  documentStatus: string;
+  latestAiJobStatus: string | null;
+  requestId: string;
+};
+
+// 환자의 의료문서 목록을 최대 50건 불러온다(개인은 patientId 생략)
+export function fetchMedicalDocuments(patientId?: string) {
+  const params = new URLSearchParams({ size: "50" });
+  if (patientId) {
+    params.set("patientId", patientId);
+  }
+  return api<MedicalDocumentListResponse>(`/api/documents?${params.toString()}`);
+}
+
+// 진료 방문에 문서 파일을 올린다(같은 키로 다시 보내면 중복 등록되지 않는다)
+export function uploadDocument(
+  visitId: string,
+  file: File,
+  idempotencyKey: string,
+  declaredDocType?: string
+) {
+  const body = new FormData();
+  body.append("file", file);
+  if (declaredDocType) {
+    body.append("declaredDocType", declaredDocType);
+  }
+  return api<DocumentUploadResponse>(`/api/visits/${encodeURIComponent(visitId)}/documents`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body
+  });
 }
