@@ -29,9 +29,16 @@
 .records-empty-icon { display: grid; place-items: center; margin: 0 auto 12px; width: 42px; height: 42px; background: #e9f1f7; color: #83a1b8; border-radius: 14px; font-size: 26px; }
 .records-empty strong { display: block; color: #5c788d; font-size: 14px; font-weight: 600; }
 .records-empty p { color: #879aa9; font-size: 12px; line-height: 1.8; margin: 7px 0 0; }
-.records-entry { border: 1px solid #dfeaf2; border-radius: 18px; padding: 18px; box-shadow: none; }
-.records-entry > p:first-child { font-size: 15px; line-height: 1.8; color: #334f63; margin-top: 0; overflow-wrap: anywhere; }
-.records-entry .row-actions { justify-content: flex-end; border-top: 1px solid #edf2f6; padding-top: 10px; }
+.records-entry { position: relative; border: 1px solid #dfeaf2; border-radius: 18px; padding: 18px; padding-right: 58px; box-shadow: none; }
+.records-entry > p:not(.hint) { font-size: 15px; line-height: 1.8; color: #334f63; margin-top: 0; overflow-wrap: anywhere; }
+.record-actions { position: absolute; top: 12px; right: 12px; }
+.record-actions-trigger { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 10px; background: transparent; color: #718b9e; cursor: pointer; }
+.record-actions-trigger:hover, .record-actions-trigger[aria-expanded="true"] { background: #edf5fb; color: #348ed0; }
+.record-actions-trigger:disabled { opacity: .45; cursor: default; }
+.record-actions-dropdown { position: absolute; right: 0; top: 40px; z-index: 5; width: 128px; padding: 5px; border: 1px solid #dfeaf2; border-radius: 12px; background: #fff; box-shadow: 0 8px 24px #284e6a20; }
+.record-actions-dropdown button { display: block; width: 100%; min-height: 42px; padding: 10px 14px; border: 0; border-radius: 8px; background: transparent; color: #344f63; text-align: left; font: inherit; font-size: 14px; cursor: pointer; }
+.record-actions-dropdown button:hover { background: #f0f6fa; }
+.record-actions-dropdown button.record-actions-delete { color: #c55454; }
 .records-target select { display: block; width: 100%; border: 1px solid #d9e5ee; border-radius: 12px; padding: 12px; margin-top: 10px; background: #f9fbfd; color: #3d5669; font: inherit; }
 .records-writer { color: #728a9c; font-size: 12px; margin: -6px 0 16px; }
 .records-screen button:focus-visible { outline: 3px solid #559dd080; outline-offset: 3px; }

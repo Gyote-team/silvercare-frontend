@@ -2,6 +2,7 @@
 import "./records.css";
 import { useEffect, useRef, useState } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { RecordActions } from "@/components/RecordActions";
 import { api, ApiRequestError, type CareRelation, type HealthRecord, type HealthRecordPage } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
@@ -186,12 +187,10 @@ export default function RecordsPage() {
       if (!text.trim() || window.confirm("작성 중인 내용을 지우고 다시 불러올까요?")) setReload((value) => value + 1);
     }}>기록 다시 불러오기</button> : null}
     {page.items.map((r) => <article key={r.recordId} className="card records-entry">
+      {me.role === "PATIENT" || caregiver ? <RecordActions disabled={busy || fetching}
+        onEdit={() => { void startEdit(r); }} onDelete={() => { void remove(r); }} /> : null}
       <p style={{ whiteSpace: "pre-wrap" }}>{r.body}</p>
       <p className="hint">{new Date(r.recordedAt).toLocaleString("ko-KR")} · {r.authorName}{r.proxyWritten ? " (보호자 작성)" : " (본인 작성)"}</p>
-      {me.role === "PATIENT" || caregiver ? <div className="row-actions">
-        <button className="btn-out" disabled={busy || fetching} onClick={() => startEdit(r)}>수정</button>
-        <button className="btn-out" disabled={busy || fetching} onClick={() => remove(r)}>삭제</button>
-      </div> : null}
     </article>)}
     {page.hasNext ? <button className="btn-out" disabled={fetching || busy} onClick={loadMore}>더 불러오기</button> : null}
   </PhoneFrame>;
