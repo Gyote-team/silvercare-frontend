@@ -54,7 +54,7 @@ export default function RolePage() {
           <input type="radio" name="role" value="CAREGIVER" required onChange={() => setRole("CAREGIVER")} />
           <span className="role-card-body">
             <strong>보호자</strong>
-            <span>가족이 보여 준 코드로 연결을 요청합니다. 동의한 기록만 볼 수 있습니다.</span>
+            <span>개인이 보여 준 코드로 연결을 요청합니다. 수락 후 해당 개인의 건강기록을 함께 관리할 수 있습니다.</span>
           </span>
         </label>
         <p className="role-warn">한 번 고르면 바꿀 수 없습니다. 고른 뒤에 확인을 한 번 더 묻습니다.</p>
