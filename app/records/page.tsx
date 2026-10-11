@@ -188,7 +188,7 @@ export default function RecordsPage() {
     {page.items.map((r) => <article key={r.recordId} className="card records-entry">
       <p style={{ whiteSpace: "pre-wrap" }}>{r.body}</p>
       <p className="hint">{new Date(r.recordedAt).toLocaleString("ko-KR")} · {r.authorName}{r.proxyWritten ? " (보호자 작성)" : " (본인 작성)"}</p>
-      {me.role === "PATIENT" || r.authorUserId === me.id ? <div className="row-actions">
+      {me.role === "PATIENT" || caregiver ? <div className="row-actions">
         <button className="btn-out" disabled={busy || fetching} onClick={() => startEdit(r)}>수정</button>
         <button className="btn-out" disabled={busy || fetching} onClick={() => remove(r)}>삭제</button>
       </div> : null}
