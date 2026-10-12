@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthActions, AuthFooter } from "@/components/AuthActions";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -31,18 +31,20 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
       });
   }, []);
 
-  async function demoLogin(event: FormEvent) {
-    event.preventDefault();
+  async function demoLogin(account: string) {
+    if (busy) return;
+    setBusy(true);
     setDemoError("");
     try {
       const me = await api<{ role: string }>("/api/demo/login", {
         method: "POST",
-        body: JSON.stringify({ role: "CAREGIVER" })
+        body: JSON.stringify({ account })
       });
       rememberAccount();
       router.replace(me.role === "PENDING" ? "/role" : "/home");
     } catch {
       setDemoError("시연용 로그인에 실패했습니다.");
+      setBusy(false);
     }
   }
 
@@ -76,6 +78,7 @@ export function WelcomeScreen({ extra }: WelcomeScreenProps) {
           legalPrefix="로그인하면"
           demoLogin={config?.demoLogin}
           onDemo={demoLogin}
+          demoBusy={busy}
         />
       </div>
     </PhoneFrame>

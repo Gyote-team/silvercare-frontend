@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { logout } from "@/lib/api";
+import { AccountRole, ApiRequestError, fetchLinkedAccounts, LinkedAccounts, logout, switchAccount } from "@/lib/api";
+
+const ACCOUNT_LABEL: Record<AccountRole, string> = {
+  PATIENT: "개인 계정",
+  CAREGIVER: "보호자 계정"
+};
 
 export function AccountMenu({ userName }: { userName: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [linked, setLinked] = useState<LinkedAccounts | null>(null);
+  const [switching, setSwitching] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,6 +38,56 @@ export function AccountMenu({ userName }: { userName: string }) {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    let cancelled = false;
+    fetchLinkedAccounts()
+      .then((result) => {
+        if (!cancelled) {
+          setLinked(result);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLinked(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  const switchTarget: AccountRole | null =
+    linked?.currentRole === "PATIENT" ? "CAREGIVER" : linked?.currentRole === "CAREGIVER" ? "PATIENT" : null;
+
+  async function onSwitch() {
+    if (!switchTarget || !linked) {
+      return;
+    }
+    const label = ACCOUNT_LABEL[switchTarget];
+    const exists = linked.accounts.some((account) => account.role === switchTarget);
+    if (!exists) {
+      const ok = window.confirm(`${label} 화면을 처음 사용합니다. 같은 로그인으로 전환할까요?`);
+      if (!ok) {
+        return;
+      }
+    }
+    setSwitching(true);
+    try {
+      await switchAccount(switchTarget);
+      window.location.href = "/home";
+    } catch (error) {
+      setSwitching(false);
+      if (error instanceof ApiRequestError && error.status === 401) {
+        router.replace("/login");
+        return;
+      }
+      window.alert(`${label}으로 전환하지 못했어요. 잠시 후 다시 시도해 주세요.`);
+    }
+  }
 
   async function onLogout() {
     setOpen(false);
@@ -59,6 +116,17 @@ export function AccountMenu({ userName }: { userName: string }) {
           <Link className="account-item" href="/account" role="menuitem" onClick={() => setOpen(false)}>
             내 계정
           </Link>
+          {switchTarget ? (
+            <button
+              className="account-item"
+              type="button"
+              role="menuitem"
+              disabled={switching}
+              onClick={onSwitch}
+            >
+              {switching ? "전환 중..." : `${ACCOUNT_LABEL[switchTarget]}으로 전환`}
+            </button>
+          ) : null}
           <button className="account-item" type="button" role="menuitem" onClick={onLogout}>
             로그아웃
           </button>

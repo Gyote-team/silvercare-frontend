@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, ReactNode, useState } from "react";
+import { ReactNode, useState } from "react";
 import { SocialButtons } from "@/components/SocialButtons";
 import type { AuthConfig } from "@/lib/api";
 
@@ -51,11 +51,13 @@ export function AuthActions({
 export function AuthFooter({
   legalPrefix,
   demoLogin,
-  onDemo
+  onDemo,
+  demoBusy
 }: {
   legalPrefix: string;
   demoLogin?: boolean;
-  onDemo?: (event: FormEvent) => void;
+  onDemo?: (account: string) => void;
+  demoBusy?: boolean;
 }) {
   return (
     <footer className="login-footer">
@@ -64,9 +66,14 @@ export function AuthFooter({
         <Link href="/terms">이용약관</Link>과 <Link href="/privacy">개인정보 처리방침</Link>에 동의하게 됩니다.
       </p>
       {demoLogin && onDemo ? (
-        <form className="demo-link" onSubmit={onDemo}>
-          <button type="submit">시연용 · 보호자(김민지)로 보기</button>
-        </form>
+        <section className="demo-link" aria-label="시연용 계정">
+          <p>시연용 계정 · 로그인 후 개인·보호자 화면을 전환할 수 있어요.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {[["MINJI", "김민지"], ["SOONJA", "김순자"], ["JIHUN", "박지훈"], ["SEOYEON", "이서연"]].map(([id, name]) =>
+              <button key={id} type="button" disabled={demoBusy} onClick={() => onDemo(id)}>{name}로 시작</button>
+            )}
+          </div>
+        </section>
       ) : null}
     </footer>
   );
