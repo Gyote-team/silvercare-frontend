@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import {
@@ -39,7 +39,7 @@ function dateTime(value: string) {
   return new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
-export default function ChatPage() {
+function ChatContent() {
   const { me, loading: meLoading } = useMe();
   const searchParams = useSearchParams();
   const patientId = searchParams.get("patientId") ?? undefined;
@@ -115,6 +115,13 @@ export default function ChatPage() {
     setError("");
     try {
       const target = await ensureSession();
+      const optimisticMessage: AiChatMessage = {
+        messageId: `pending-${Date.now()}`,
+        role: "USER",
+        content: nextQuestion,
+        createdAt: new Date().toISOString()
+      };
+      setMessages((current) => [...current, optimisticMessage]);
       const nextMessages = await askAiChat(target.sessionId, nextQuestion, nextType, selectedDocumentIds);
       setMessages(nextMessages);
       setQuestion("");
@@ -158,7 +165,7 @@ export default function ChatPage() {
         ) : <p className="chat-empty">분석이 완료된 의료문서를 먼저 올려 주세요.</p>}
       </section>
 
-      {!messages.length ? (
+      {!messages.length && !busy ? (
         <section className="chat-guide">
           <div className="chat-section-title"><strong>이렇게 질문해 보세요</strong></div>
           <div className="chat-guide-list">
@@ -179,7 +186,7 @@ export default function ChatPage() {
         </section>
       )}
 
-      {error ? <p className="chat-error" role="alert">{error}</p> : null}
+      {error ? <p className="chat-error" role="alert">오류 위치: {error}</p> : null}
       <form className="chat-composer" onSubmit={submit}>
         <select value={questionType} onChange={(event) => setQuestionType(event.target.value as AiQuestionType)} aria-label="질문 종류">
           <option value="DOCUMENT_EASY_EXPLANATION">쉬운 설명</option>
@@ -189,5 +196,13 @@ export default function ChatPage() {
         <button type="submit" disabled={!question.trim() || !selectedCount || busy}>↑</button>
       </form>
     </PhoneFrame>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<main className="page-shell"><section className="chat-panel"><p className="chat-thinking">채팅을 준비하고 있어요...</p></section></main>}>
+      <ChatContent />
+    </Suspense>
   );
 }
