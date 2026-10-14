@@ -165,6 +165,22 @@ export type AiDocumentListQuery = {
   size?: number;
 };
 
+export type AiQuestionType = "DOCUMENT_EASY_EXPLANATION" | "LAB_RESULT_COMPARISON";
+
+export type AiChatSession = {
+  sessionId: string;
+  patientId: string;
+  title: string | null;
+  createdAt: string;
+};
+
+export type AiChatMessage = {
+  messageId: string;
+  role: "USER" | "ASSISTANT" | "SYSTEM";
+  content: string;
+  createdAt: string;
+};
+
 export class ApiRequestError extends Error {
   status: number;
   error: string;
@@ -216,6 +232,34 @@ export async function fetchAiDocuments(query: AiDocumentListQuery = {}) {
   });
   const suffix = params.toString() ? `?${params.toString()}` : "";
   return api<AiDocumentListResponse>(`/api/ai-documents${suffix}`);
+}
+
+export function fetchAiChatSessions(patientId?: string) {
+  const suffix = patientId ? `?patientId=${encodeURIComponent(patientId)}` : "";
+  return api<AiChatSession[]>(`/api/ai-chat-sessions${suffix}`);
+}
+
+export function createAiChatSession(patientId?: string, title?: string) {
+  return api<AiChatSession>("/api/ai-chat-sessions", {
+    method: "POST",
+    body: JSON.stringify({ patientId, title })
+  });
+}
+
+export function fetchAiChatMessages(sessionId: string) {
+  return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`);
+}
+
+export function askAiChat(
+  sessionId: string,
+  question: string,
+  questionType: AiQuestionType,
+  documentIds: string[]
+) {
+  return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ question, questionType, documentIds })
+  });
 }
 
 export function fetchAiDocument(documentId: string) {
