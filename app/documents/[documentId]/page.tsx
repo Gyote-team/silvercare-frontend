@@ -89,6 +89,9 @@ export default function AiDocumentDetailPage() {
   const documentsHref = patientId
     ? `/documents?patientId=${encodeURIComponent(patientId)}`
     : "/documents";
+  const requestedReturnTo = searchParams.get("returnTo");
+  const returnsToChat = requestedReturnTo?.startsWith("/chat?") ?? false;
+  const backHref = returnsToChat ? requestedReturnTo! : documentsHref;
   const [detail, setDetail] = useState<AiDocumentDetailResponse | null>(null);
   const [sections, setSections] = useState<AiDocumentSectionsResponse | null>(null);
   const [status, setStatus] = useState<AiDocumentExplanationStatusResponse | null>(null);
@@ -212,8 +215,8 @@ export default function AiDocumentDetailPage() {
 
   return (
     <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
-      <Link href={documentsHref} className="document-back">
-        ← 문서함
+      <Link href={backHref} className="document-back">
+        ← {returnsToChat ? "채팅으로 돌아가기" : "문서함"}
       </Link>
       {error ? <p className="msg error">{error}</p> : null}
 
