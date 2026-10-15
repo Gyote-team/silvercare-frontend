@@ -2,8 +2,8 @@
 import { useState, type FormEvent } from "react";
 import { type Visit, type VisitInput, type VisitStatus, todayInSeoul } from "@/lib/visits";
 
-export function VisitForm({ initial, patientId, disabled, onSave, onDirty, onCancel }: {
-  initial?: Visit; patientId?: string; disabled: boolean;
+export function VisitForm({ initial, patientId, disabled, pending = false, onSave, onDirty, onCancel }: {
+  initial?: Visit; patientId?: string; disabled: boolean; pending?: boolean;
   onSave: (input: VisitInput) => Promise<void>; onDirty?: (dirty: boolean) => void; onCancel?: () => void;
 }) {
   const [date, setDate] = useState(initial?.visitedOn ?? todayInSeoul());
@@ -37,7 +37,7 @@ export function VisitForm({ initial, patientId, disabled, onSave, onDirty, onCan
       <label htmlFor="visit-memo">방문 메모 <span>선택</span></label>
       <textarea id="visit-memo" rows={3} value={memo} maxLength={2000} onChange={event => setMemo(event.target.value)} placeholder="진료 때 확인할 내용이나 방문 내용을 남겨 주세요." />
       <p className="visit-character-count">{memo.length.toLocaleString()} / 2,000</p>
-      <button className="btn-primary visit-submit" type="submit" disabled={disabled || !date}>{disabled ? "처리 중…" : initial ? "수정 저장" : "방문 등록하기"}</button>
+      <button className="btn-primary visit-submit" type="submit" disabled={disabled || !date}>{pending ? "처리 중…" : initial ? "수정 저장" : "방문 등록하기"}</button>
       {onCancel && <button className="btn-out" type="button" onClick={onCancel}>수정 취소</button>}
     </fieldset>
   </form>;

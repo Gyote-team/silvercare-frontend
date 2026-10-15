@@ -31,9 +31,12 @@ export function visitError(error: unknown) {
   }
   return "요청을 처리하지 못했어요. 연결 상태를 확인하고 다시 시도해 주세요.";
 }
-export function visitListPath(patientId: string | undefined, includeCanceled: boolean, cursor?: string) {
+export type VisitFilter = "ACTIVE" | "ALL" | VisitStatus;
+export function visitListPath(patientId: string | undefined, filter: VisitFilter, cursor?: string) {
+  const includeCanceled = filter === "ALL" || filter === "CANCELED";
   const params = new URLSearchParams({ includeCanceled: String(includeCanceled), size: "20" });
   if (patientId) params.set("patientId", patientId);
+  if (filter !== "ALL" && filter !== "ACTIVE") params.set("visitStatus", filter);
   if (cursor) params.set("cursor", cursor);
   return `/api/visits?${params}`;
 }

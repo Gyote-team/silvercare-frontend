@@ -5,7 +5,7 @@ import { PhoneFrame } from "@/components/PhoneFrame";
 import { VisitForm } from "@/components/VisitForm";
 import { useMe } from "@/lib/useMe";
 import { api, type CareRelation } from "@/lib/api";
-import { type VisitPage, type VisitInput, visitDateLabel, visitError, visitListPath, visitStatusLabel, writeVisit } from "@/lib/visits";
+import { type VisitPage, type VisitInput, type VisitFilter, visitDateLabel, visitError, visitListPath, visitStatusLabel, writeVisit } from "@/lib/visits";
 import "@/app/visits/visits.css";
 
 const emptyPage: VisitPage = { items: [], nextCursor: null, hasNext: false };
@@ -19,7 +19,7 @@ export function VisitManager() {
   const [targetError, setTargetError] = useState("");
   const [targetReload, setTargetReload] = useState(0);
   const [page, setPage] = useState(emptyPage);
-  const [includeCanceled, setIncludeCanceled] = useState(false);
+  const [filter, setFilter] = useState<VisitFilter>("ACTIVE");
   const [fetching, setFetching] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
@@ -55,12 +55,12 @@ export function VisitManager() {
     if (!canManage) return;
     if (caregiver && me) sessionStorage.setItem(`visits-target:${me.id}`, target);
     setFetching(true);
-    api<VisitPage>(visitListPath(caregiver ? target : undefined, includeCanceled), { signal: controller.signal }).then(result => {
+    api<VisitPage>(visitListPath(caregiver ? target : undefined, filter), { signal: controller.signal }).then(result => {
       if (token === generation.current) { setPage(result); setLoaded(true); }
     }).catch(reason => { if (token === generation.current && !controller.signal.aborted) setError(visitError(reason)); })
       .finally(() => { if (token === generation.current) setFetching(false); });
     return () => { controller.abort(); ++generation.current; };
-  }, [canManage, caregiver, me, target, includeCanceled, reload]);
+  }, [canManage, caregiver, me, target, filter, reload]);
 
   function changeTarget(next: string) {
     if (next === target || busy) return;
@@ -81,7 +81,7 @@ export function VisitManager() {
     if (busy || fetching || !page.nextCursor) return;
     const token = generation.current; setFetching(true);
     try {
-      const result = await api<VisitPage>(visitListPath(caregiver ? target : undefined, includeCanceled, page.nextCursor));
+      const result = await api<VisitPage>(visitListPath(caregiver ? target : undefined, filter, page.nextCursor));
       if (token === generation.current) setPage(current => ({ ...result, items: [...current.items, ...result.items] }));
     } catch (reason) { if (token === generation.current) setError(visitError(reason)); }
     finally { if (token === generation.current) setFetching(false); }
@@ -98,12 +98,14 @@ export function VisitManager() {
       {ready && !targets.length && <p>개인과 연결한 뒤 방문을 관리할 수 있어요. 본인 방문은 개인 계정으로 전환해 주세요.</p>}
     </section> : <p className="visit-owner">{me.name} 님의 방문 · 보호자 없이도 관리할 수 있어요.</p>}
     {canManage && <><p className="visit-context">{targetName} 님의 방문을 관리하고 있어요.</p>
-      <VisitForm key={`${me.id}:${target}:${formKey}`} patientId={caregiver ? target : undefined} disabled={busy || fetching} onSave={save} onDirty={setDirty} /></>}
+      <VisitForm key={`${me.id}:${target}:${formKey}`} patientId={caregiver ? target : undefined} disabled={busy || fetching} pending={busy} onSave={save} onDirty={setDirty} /></>}
     {message && <p className="visit-success" role="status">{message}</p>}
-    <div className="visit-list-heading"><h2>방문 목록</h2><label><input type="checkbox" checked={includeCanceled} disabled={busy} onChange={event => setIncludeCanceled(event.target.checked)} /> 취소된 방문 포함</label></div>
+    <div className="visit-list-heading"><h2>방문 목록</h2><label>방문 상태 <select aria-label="방문 상태 필터" value={filter} disabled={busy} onChange={event => setFilter(event.target.value as VisitFilter)}>
+      <option value="ACTIVE">예정·완료</option><option value="ALL">전체</option><option value="SCHEDULED">방문 예정</option><option value="DONE">방문 완료</option><option value="CANCELED">취소된 방문</option>
+    </select></label></div>
     {error && <div className="visit-error" role="alert"><p>{error}</p><button className="btn-out" disabled={busy || fetching} onClick={() => setReload(value => value + 1)}>목록 다시 불러오기</button></div>}
     {fetching && !page.items.length && <p role="status">방문을 불러오는 중…</p>}
-    {canManage && loaded && !page.items.length && <section className="visit-empty"><strong>{includeCanceled ? "아직 등록된 방문이 없어요" : "표시할 방문이 없어요"}</strong><p>위에서 첫 방문을 등록하거나 취소된 방문을 포함해 확인해 보세요.</p></section>}
+    {canManage && loaded && !page.items.length && <section className="visit-empty"><strong>선택한 상태의 방문이 없어요</strong><p>다른 상태를 선택하거나 위에서 새 방문을 등록해 보세요.</p></section>}
     <div className="visit-list">{page.items.map(visit => <Link key={visit.visitId} href={`/visits/${visit.visitId}`} className={`visit-list-card ${visit.visitStatus.toLowerCase()}`}>
       <div><span className={`visit-status ${visit.visitStatus.toLowerCase()}`}>{visitStatusLabel[visit.visitStatus]}</span><span className="visit-arrow" aria-hidden="true">›</span></div>
       <h3>{visit.hospitalName || "병원명 미입력"}{visit.department && <span> · {visit.department}</span>}</h3>

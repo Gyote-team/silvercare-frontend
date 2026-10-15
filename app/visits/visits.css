@@ -32,7 +32,11 @@
 .visit-status.scheduled { background: #e4f1fc; color: #2f80ba; }
 .visit-status.done { background: #e9f4ef; color: #4b8b6e; }
 .visit-status.canceled { background: #f0f1f3; color: #82919c; }
-.visit-list-card.canceled { background: #f9fafb; }
+.visit-list-card.canceled { background: #eef0f3; border-style: dashed; border-color: #c4cbd2; }
+.visit-list-card.canceled h3, .visit-list-card.canceled .visit-date { color: #7b8791; }
+.visit-list-card.canceled h3 { text-decoration: line-through; text-decoration-color: #a7b1b9; }
+.visit-list-card.canceled .visit-status { background: #dce1e6; color: #5c6975; }
+.visit-list-heading select { padding: 8px; border: 1px solid #d6e4ef; border-radius: 9px; background: #fff; color: #36556b; font: inherit; }
 .visit-date { color: #6f879a; font-size: 13px; line-height: 1.7; }
 .visit-preview { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #8498a7; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
 .visit-reference-count { display: flex; gap: 12px; margin-top: 13px; color: #7296b0; font-size: 11px; }

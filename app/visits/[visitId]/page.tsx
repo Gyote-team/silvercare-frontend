@@ -89,7 +89,7 @@ export default function VisitDetailPage() {
     {error && <div className="visit-error" role="alert"><p>{error}</p><button className="btn-out" disabled={busy || fetching} onClick={retry}>방문 다시 불러오기</button></div>}
     {message && <p className="visit-success" role="status">{message}</p>}
     {visit && <>
-      {editing ? <VisitForm key={visit.updatedAt} initial={visit} patientId={caregiver ? visit.patientId : undefined} disabled={busy || stale} onSave={save} onDirty={setDirty} onCancel={() => {
+      {editing ? <VisitForm key={visit.updatedAt} initial={visit} patientId={caregiver ? visit.patientId : undefined} disabled={busy || stale} pending={busy} onSave={save} onDirty={setDirty} onCancel={() => {
         if (!dirty || window.confirm("수정 중인 내용을 지울까요?")) { setEditing(false); setDirty(false); }
       }} /> : <section className="visit-detail card">
         <span className={`visit-status ${visit.visitStatus.toLowerCase()}`}>{visitStatusLabel[visit.visitStatus]}</span>
@@ -111,7 +111,7 @@ export default function VisitDetailPage() {
         {recordError && <p role="alert">{recordError}</p>}
         {records.map(record => <article className="visit-linked-record" key={record.recordId}><p>{record.body}</p><span>{record.authorName} · {record.proxyWritten ? "보호자 작성" : "본인 작성"}</span></article>)}
         {!visit.documentIds.length && <p className="visit-hint">이 방문에 연결된 병원 서류가 없어요.</p>}
-        <div className="visit-document-links">{visit.documentIds.map((docId, index) => <Link key={docId} href={`/documents/${docId}${caregiver ? `?patientId=${encodeURIComponent(visit.patientId)}` : ""}`}>병원 서류 {index + 1} 보기 ›</Link>)}</div>
+        <div className="visit-document-links">{visit.documentIds.map((docId, index) => <Link key={docId} href={`/documents/${docId}?visitId=${encodeURIComponent(visit.visitId)}${caregiver ? `&patientId=${encodeURIComponent(visit.patientId)}` : ""}`}>병원 서류 {index + 1} 보기 ›</Link>)}</div>
       </section>
     </>}
   </PhoneFrame>;
