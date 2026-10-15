@@ -277,8 +277,8 @@ function HomeBody() {
         </Link>
         <Link className="action-card a4" href="/timeline">
           <div className="icon">🗂️</div>
-          <h3>지난 진료 보기</h3>
-          <p>Visit 타임라인 확인</p>
+          <h3>병원 방문 관리</h3>
+          <p>방문 등록 · 조회 · 수정 · 취소</p>
         </Link>
       </div>
 
