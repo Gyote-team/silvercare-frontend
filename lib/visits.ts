@@ -25,7 +25,7 @@ export function visitError(error: unknown) {
     if (error.status === 401) return "로그인이 만료됐어요. 다시 로그인해 주세요.";
     if (error.status === 403) return "이 개인의 방문을 관리할 권한이 없어요. 연결 상태를 확인해 주세요.";
     if (error.status === 404) return "방문을 찾을 수 없어요. 목록을 다시 확인해 주세요.";
-    if (error.status === 409) return "방문 상태가 변경됐어요. 다시 불러온 뒤 확인해 주세요.";
+    if (error.status === 409) return "다른 곳에서 방문 정보가 변경되어 현재 화면이 오래됐어요. 방문을 다시 불러온 뒤 수정해 주세요.";
     if (error.status >= 500) return "서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.";
     return error.message;
   }

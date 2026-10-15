@@ -14,6 +14,7 @@
 .visit-form input, .visit-form select, .visit-form textarea, .visit-target select { width: 100%; padding: 12px; border: 1px solid #d6e4ef; border-radius: 11px; background: #f9fbfd; color: #304e62; font: inherit; font-size: 14px; min-height: 46px; }
 .visit-form textarea { resize: vertical; line-height: 1.7; }
 .visit-form .visit-submit { display: block; width: 100%; min-height: 48px; margin-top: 15px; border-radius: 12px; background: #348ed0; }
+.visit-form .visit-submit + button { margin-top: 12px; }
 .visit-form button:disabled { opacity: .55; cursor: default; }
 .visit-hint { color: #8196a6; line-height: 1.7; font-size: 12px; }
 .visit-character-count { text-align: right; color: #8196a6; font-size: 11px; margin: 7px 0; }
