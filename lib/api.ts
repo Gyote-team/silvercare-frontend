@@ -185,7 +185,7 @@ export type AiChatMessage = {
 
 export type AiResultEvidence = {
   citationId: string;
-  documentId: string;
+  documentId: string | null;
   pageNo: number | null;
   label: string | null;
   sourceText: string | null;

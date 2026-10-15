@@ -21,6 +21,7 @@ import {
   type MedicalDocumentListItem
 } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
+import { citedEvidence } from "@/lib/aiResultEvidence";
 
 const guides: Array<{ label: string; question: string; type: AiQuestionType }> = [
   {
@@ -68,6 +69,10 @@ function ChatContent() {
   const patientId = searchParams.get("patientId") ?? undefined;
   const requestedSessionId = searchParams.get("sessionId");
   const [relations, setRelations] = useState<CareRelation[]>([]);
+  const [relationsLoaded, setRelationsLoaded] = useState(false);
+  const [checkingRelations, setCheckingRelations] = useState(false);
+  const [relationsFailed, setRelationsFailed] = useState(false);
+  const [deniedPatientId, setDeniedPatientId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<AiChatSession[]>([]);
   const [session, setSession] = useState<AiChatSession | null>(null);
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
@@ -84,16 +89,41 @@ function ChatContent() {
 
   const selectedCount = selectedDocumentIds.length;
   const hasDocuments = documents.length > 0;
+  const caregiverAccessDenied = me?.role === "CAREGIVER" && !!patientId && (
+    deniedPatientId === patientId ||
+    (relationsLoaded && !relationsFailed && !relations.some((row) => row.patientId === patientId))
+  );
   const patientLabel = me?.role === "CAREGIVER"
     ? relations.find((row) => row.patientId === patientId)?.counterpartName ?? "선택한 환자"
     : "나의 의료기록";
 
   useEffect(() => {
     if (me?.role !== "CAREGIVER") return;
-    api<CareRelation[]>("/api/care-relations")
-      .then((rows) => setRelations(rows.filter((row) => row.status === "ACTIVE")))
-      .catch((reason) => setError(failureMessage(reason)));
-  }, [me]);
+    let active = true;
+    let latestRequest = 0;
+    const refreshRelations = () => {
+      const request = ++latestRequest;
+      setCheckingRelations(true);
+      api<CareRelation[]>("/api/care-relations")
+        .then((rows) => {
+          if (!active || request !== latestRequest) return;
+          setRelations(rows.filter((row) => row.status === "ACTIVE"));
+          setRelationsFailed(false);
+          setRelationsLoaded(true);
+          setCheckingRelations(false);
+        })
+        .catch((reason) => {
+          if (!active || request !== latestRequest) return;
+          setRelationsFailed(true);
+          setRelationsLoaded(true);
+          setCheckingRelations(false);
+          setError(failureMessage(reason));
+        });
+    };
+    refreshRelations();
+    window.addEventListener("focus", refreshRelations);
+    return () => { active = false; window.removeEventListener("focus", refreshRelations); };
+  }, [me?.id, me?.role]);
 
   useEffect(() => {
     setSessions([]);
@@ -101,7 +131,7 @@ function ChatContent() {
     setMessages([]);
     setDocuments([]);
     setSelectedDocumentIds([]);
-    if (!me || (me.role === "CAREGIVER" && !patientId)) return;
+    if (!me || (me.role === "CAREGIVER" && (!patientId || !relationsLoaded || relationsFailed || caregiverAccessDenied))) return;
     let active = true;
     Promise.all([
       fetchAiChatSessions(patientId),
@@ -123,10 +153,13 @@ function ChatContent() {
       })
       .catch((reason) => {
         if (!active) return;
+        if (reason instanceof ApiRequestError && reason.status === 403 && patientId) {
+          setDeniedPatientId(patientId);
+        }
         setError(failureMessage(reason));
       });
     return () => { active = false; };
-  }, [me, patientId, requestedSessionId]);
+  }, [me, patientId, requestedSessionId, relationsLoaded, relationsFailed, caregiverAccessDenied]);
 
   useEffect(() => {
     if (!session) {
@@ -140,9 +173,15 @@ function ChatContent() {
     let active = true;
     fetchAiChatMessages(session.sessionId)
       .then((items) => { if (active) setMessages(items); })
-      .catch((reason) => { if (active) setError(failureMessage(reason)); });
+      .catch((reason) => {
+        if (!active) return;
+        if (reason instanceof ApiRequestError && reason.status === 403 && me?.role === "CAREGIVER") {
+          setDeniedPatientId(session.patientId);
+        }
+        setError(failureMessage(reason));
+      });
     return () => { active = false; };
-  }, [session]);
+  }, [session, me?.role]);
 
   const sourceSummary = useMemo(() => {
     if (!selectedCount) return "문서를 선택하면 원문 근거를 함께 보여 드려요.";
@@ -191,6 +230,9 @@ function ChatContent() {
       setMessages([]);
       setQuestion("");
     } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.status === 403 && patientId) {
+        setDeniedPatientId(patientId);
+      }
       setError(failureMessage(reason));
     } finally {
       setCreatingSession(false);
@@ -223,6 +265,9 @@ function ChatContent() {
       }
       setQuestion("");
     } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.status === 403 && patientId) {
+        setDeniedPatientId(patientId);
+      }
       setMessages((current) => current.filter((message) => message.messageId !== pendingId));
       setError(failureMessage(reason));
     } finally {
@@ -240,21 +285,28 @@ function ChatContent() {
     if (evidence[message.messageId]) return;
     try {
       const result = await fetchAiResultDocument(message.resultDocumentId);
-      const parsed = result.citationJson ? JSON.parse(result.citationJson) as {
-        sources?: AiResultEvidence[];
-        sentences?: Array<{ citationIds?: string[] }>;
-      } : {};
-      const citedIds = new Set(parsed.sentences?.flatMap((sentence) => sentence.citationIds ?? []) ?? []);
-      const sources = citedIds.size
-        ? (parsed.sources ?? []).filter((source) => citedIds.has(source.citationId))
-        : (parsed.sources ?? []);
-      setEvidence((current) => ({ ...current, [message.messageId]: sources }));
+      setEvidence((current) => ({
+        ...current,
+        [message.messageId]: citedEvidence(result.citationJson)
+      }));
     } catch (reason) {
+      if (reason instanceof ApiRequestError && reason.status === 403 && patientId) {
+        setDeniedPatientId(patientId);
+      }
       setError(failureMessage(reason));
     }
   }
 
   if (meLoading || !me) return <PhoneFrame tab="chat"><p className="page-sub">불러오는 중…</p></PhoneFrame>;
+  if (me.role === "CAREGIVER" && patientId && (!relationsLoaded || checkingRelations)) {
+    return <PhoneFrame tab="chat"><p className="page-sub">연결 상태를 확인하고 있어요…</p></PhoneFrame>;
+  }
+  if (me.role === "CAREGIVER" && patientId && relationsFailed) {
+    return <PhoneFrame tab="chat"><p className="chat-error" role="alert">연결 상태를 확인하지 못했어요. 다시 접속해 주세요.</p><Link href="/chat">가족 선택으로 돌아가기</Link></PhoneFrame>;
+  }
+  if (caregiverAccessDenied) {
+    return <PhoneFrame tab="chat"><p className="chat-error" role="alert">현재 이 환자의 채팅을 볼 권한이 없어요.</p><Link href="/chat">가족 선택으로 돌아가기</Link></PhoneFrame>;
+  }
 
   return (
     <PhoneFrame tab="chat" userName={me.name} scrollClassName={`chat-screen${session ? " chat-screen-active" : ""}`}>
@@ -326,7 +378,7 @@ function ChatContent() {
                       <div><span>원문 근거</span><small>{source.pageNo ? `${source.pageNo}쪽` : "페이지 정보 없음"}</small></div>
                       <strong>{source.label || "의료문서"}</strong>
                       <blockquote>{source.sourceText || [source.value, source.unit].filter(Boolean).join(" ") || "원문 텍스트가 없습니다."}</blockquote>
-                      <Link href={sourceDocumentHref(source.documentId)}>문서에서 확인 <i className="chat-chevron" /></Link>
+                      {source.documentId ? <Link href={sourceDocumentHref(source.documentId)}>문서에서 확인 <i className="chat-chevron" /></Link> : null}
                     </div>) : <p>이 답변에 연결된 원문 근거가 없습니다.</p>}
                   </div> : null}
                 </>
