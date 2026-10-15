@@ -15,7 +15,7 @@ export function VisitForm({ initial, patientId, disabled, onSave, onDirty, onCan
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (disabled || !date) return;
-    await onSave({ patientId, visitedOn: date, hospitalName: hospital.trim() || null,
+    await onSave({ patientId, version: initial?.version, visitedOn: date, hospitalName: hospital.trim() || null,
       department: department.trim() || null, memo: memo.trim() || null, visitStatus: future ? "SCHEDULED" : status });
   }
   return <form className="visit-form" onSubmit={submit} onChange={() => onDirty?.(true)}>

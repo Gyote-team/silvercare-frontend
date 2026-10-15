@@ -4,12 +4,12 @@ export type VisitStatus = "SCHEDULED" | "DONE" | "CANCELED";
 export type Visit = {
   visitId: string; patientId: string; visitedOn: string; hospitalName: string | null;
   department: string | null; memo: string | null; visitStatus: VisitStatus;
-  documentIds: string[]; healthRecordIds: string[]; createdAt: string; updatedAt: string;
+  documentIds: string[]; healthRecordIds: string[]; createdAt: string; updatedAt: string; version: number;
 };
 export type VisitPage = { items: Visit[]; nextCursor: string | null; hasNext: boolean };
 export type VisitInput = {
   patientId?: string; visitedOn: string; hospitalName: string | null;
-  department: string | null; memo: string | null; visitStatus: VisitStatus;
+  department: string | null; memo: string | null; visitStatus: VisitStatus; version?: number;
 };
 export const visitStatusLabel: Record<VisitStatus, string> = { SCHEDULED: "방문 예정", DONE: "방문 완료", CANCELED: "취소됨" };
 export function todayInSeoul() {
