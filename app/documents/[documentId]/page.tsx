@@ -86,12 +86,17 @@ export default function AiDocumentDetailPage() {
   const searchParams = useSearchParams();
   const documentId = params.documentId;
   const patientId = searchParams.get("patientId");
+  const sourceVisitId = searchParams.get("visitId");
+  const visitHref = sourceVisitId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sourceVisitId)
+    ? `/visits/${encodeURIComponent(sourceVisitId)}` : null;
   const documentsHref = patientId
     ? `/documents?patientId=${encodeURIComponent(patientId)}`
     : "/documents";
   const requestedReturnTo = searchParams.get("returnTo");
   const returnsToChat = requestedReturnTo?.startsWith("/chat?") ?? false;
-  const backHref = returnsToChat ? requestedReturnTo! : documentsHref;
+  const backHref = returnsToChat ? requestedReturnTo! : visitHref ?? documentsHref;
+  const backLabel = returnsToChat ? "← 채팅으로 돌아가기"
+    : visitHref ? "← 방문 상세로 돌아가기" : "← 문서함";
   const [detail, setDetail] = useState<AiDocumentDetailResponse | null>(null);
   const [sections, setSections] = useState<AiDocumentSectionsResponse | null>(null);
   const [status, setStatus] = useState<AiDocumentExplanationStatusResponse | null>(null);
@@ -164,6 +169,9 @@ export default function AiDocumentDetailPage() {
   if (loadingMe || !me || loading) {
     return (
       <PhoneFrame tab="documents">
+        <Link href={backHref} className="document-back">
+          {backLabel}
+        </Link>
         <p className="page-sub">문서를 불러오는 중…</p>
       </PhoneFrame>
     );
@@ -182,7 +190,7 @@ export default function AiDocumentDetailPage() {
     setDeleteError("");
     try {
       await deleteDocument(documentId);
-      router.replace(documentsHref);
+      router.replace(backHref);
     } catch (caught) {
       setDeleting(false);
       if (caught instanceof ApiRequestError && caught.status === 401) {
@@ -216,7 +224,7 @@ export default function AiDocumentDetailPage() {
   return (
     <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <Link href={backHref} className="document-back">
-        ← {returnsToChat ? "채팅으로 돌아가기" : "문서함"}
+        {backLabel}
       </Link>
       {error ? <p className="msg error">{error}</p> : null}
 
