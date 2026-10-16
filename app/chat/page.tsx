@@ -84,6 +84,7 @@ function ChatContent() {
   const [creatingSession, setCreatingSession] = useState(false);
   const [error, setError] = useState("");
   const newlyCreatedSession = useRef<string | null>(null);
+  const selectionVersion = useRef(0);
   const [evidence, setEvidence] = useState<Record<string, AiResultEvidence[]>>({});
   const [openEvidence, setOpenEvidence] = useState<string | null>(null);
 
@@ -126,6 +127,7 @@ function ChatContent() {
   }, [me?.id, me?.role]);
 
   useEffect(() => {
+    selectionVersion.current += 1;
     setSessions([]);
     setSession(null);
     setMessages([]);
@@ -209,9 +211,15 @@ function ChatContent() {
     return `/documents/${encodeURIComponent(documentId)}${query ? `?${query}` : ""}`;
   }
 
-  async function ensureSession(firstQuestion: string) {
+  function selectSession(nextSession: AiChatSession | null) {
+    selectionVersion.current += 1;
+    setSession(nextSession);
+  }
+
+  async function ensureSession(firstQuestion: string, requestVersion: number) {
     if (session) return session;
     const created = await createAiChatSession(patientId, questionTitle(firstQuestion));
+    if (selectionVersion.current !== requestVersion) return null;
     setSessions((items) => [created, ...items]);
     newlyCreatedSession.current = created.sessionId;
     setSession(created);
@@ -222,11 +230,13 @@ function ChatContent() {
     if (creatingSession || (me?.role === "CAREGIVER" && !patientId)) return;
     setCreatingSession(true);
     setError("");
+    const requestVersion = selectionVersion.current;
     try {
       const created = await createAiChatSession(patientId, "새 채팅");
+      if (selectionVersion.current !== requestVersion) return;
       newlyCreatedSession.current = created.sessionId;
       setSessions((items) => [created, ...items]);
-      setSession(created);
+      selectSession(created);
       setMessages([]);
       setQuestion("");
     } catch (reason) {
@@ -246,9 +256,11 @@ function ChatContent() {
     if (!nextQuestion || !selectedDocumentIds.length || busy || (me?.role === "CAREGIVER" && !patientId)) return;
     setBusy(true);
     setError("");
+    const requestVersion = selectionVersion.current;
     const pendingId = `pending-${Date.now()}`;
     try {
-      const target = await ensureSession(nextQuestion);
+      const target = await ensureSession(nextQuestion, requestVersion);
+      if (!target || selectionVersion.current !== requestVersion) return;
       const optimisticMessage: AiChatMessage = {
         messageId: pendingId,
         role: "USER",
@@ -257,6 +269,7 @@ function ChatContent() {
       };
       setMessages((current) => [...current, optimisticMessage]);
       const nextMessages = await askAiChat(target.sessionId, nextQuestion, nextType, selectedDocumentIds);
+      if (selectionVersion.current !== requestVersion) return;
       setMessages(nextMessages);
       if (target.title === "새 채팅") {
         const titledSession = { ...target, title: questionTitle(nextQuestion) };
@@ -265,6 +278,7 @@ function ChatContent() {
       }
       setQuestion("");
     } catch (reason) {
+      if (selectionVersion.current !== requestVersion) return;
       if (reason instanceof ApiRequestError && reason.status === 403 && patientId) {
         setDeniedPatientId(patientId);
       }
@@ -338,12 +352,12 @@ function ChatContent() {
       {(me.role !== "CAREGIVER" || patientId) && !session ? <section className="chat-room-picker">
         <div className="chat-room-heading"><div><span className="eyebrow">CONVERSATIONS</span><h2>{patientLabel}님과의 채팅</h2><p>이전 대화를 이어가거나 새 질문을 시작하세요.</p></div><button type="button" className="chat-new-button" onClick={startNewChat} disabled={creatingSession}><span>＋</span> {creatingSession ? "만드는 중" : "새 채팅"}</button></div>
         {sessions.length ? <div className="chat-session-list chat-session-grid">
-          {sessions.map((item) => <button key={item.sessionId} type="button" className="chat-session-card" onClick={() => { setSession(item); setError(""); }}><span className="chat-session-icon">✦</span><span><strong>{item.title || "제목 없는 채팅"}</strong><small><i />{sessionDate(item.createdAt)}</small></span><i className="chat-chevron" /></button>)}
+          {sessions.map((item) => <button key={item.sessionId} type="button" className="chat-session-card" onClick={() => { selectSession(item); setError(""); }}><span className="chat-session-icon">✦</span><span><strong>{item.title || "제목 없는 채팅"}</strong><small><i />{sessionDate(item.createdAt)}</small></span><i className="chat-chevron" /></button>)}
         </div> : <div className="chat-empty-room"><span>🫧</span><strong>아직 채팅방이 없어요</strong><p>새 채팅을 눌러 첫 질문을 시작해 보세요.</p></div>}
       </section> : null}
 
       {(me.role !== "CAREGIVER" || patientId) && session ? <div className="chat-sticky-tools">
-        <div className="chat-active-room"><button type="button" onClick={() => { setSession(null); setMessages([]); setQuestion(""); }}>‹ 목록</button><strong>{session.title || "새 채팅"}</strong></div>
+        <div className="chat-active-room"><button type="button" onClick={() => { selectSession(null); setMessages([]); setQuestion(""); }}>‹ 목록</button><strong>{session.title || "새 채팅"}</strong></div>
         <details className="chat-doc-dock">
           <summary className="chat-doc-toggle"><span><i className="doc-stack">▤</i><strong>답변에 사용할 문서</strong><small>{selectedCount}/{documents.length}</small></span><span className="doc-toggle-action">문서 선택 <i className="toggle-chevron" /></span></summary>
           <div className="chat-doc-panel"><div className="chat-doc-panel-head"><strong>원하는 문서만 선택하세요</strong><small>{sourceSummary}</small></div>
