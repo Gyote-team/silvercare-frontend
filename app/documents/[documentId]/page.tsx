@@ -92,6 +92,11 @@ export default function AiDocumentDetailPage() {
   const documentsHref = patientId
     ? `/documents?patientId=${encodeURIComponent(patientId)}`
     : "/documents";
+  const requestedReturnTo = searchParams.get("returnTo");
+  const returnsToChat = requestedReturnTo?.startsWith("/chat?") ?? false;
+  const backHref = returnsToChat ? requestedReturnTo! : visitHref ?? documentsHref;
+  const backLabel = returnsToChat ? "← 채팅으로 돌아가기"
+    : visitHref ? "← 방문 상세로 돌아가기" : "← 문서함";
   const [detail, setDetail] = useState<AiDocumentDetailResponse | null>(null);
   const [sections, setSections] = useState<AiDocumentSectionsResponse | null>(null);
   const [status, setStatus] = useState<AiDocumentExplanationStatusResponse | null>(null);
@@ -164,8 +169,8 @@ export default function AiDocumentDetailPage() {
   if (loadingMe || !me || loading) {
     return (
       <PhoneFrame tab="documents">
-        <Link href={visitHref ?? documentsHref} className="document-back">
-          {visitHref ? "← 방문 상세로 돌아가기" : "← 문서함"}
+        <Link href={backHref} className="document-back">
+          {backLabel}
         </Link>
         <p className="page-sub">문서를 불러오는 중…</p>
       </PhoneFrame>
@@ -185,7 +190,7 @@ export default function AiDocumentDetailPage() {
     setDeleteError("");
     try {
       await deleteDocument(documentId);
-      router.replace(visitHref ?? documentsHref);
+      router.replace(backHref);
     } catch (caught) {
       setDeleting(false);
       if (caught instanceof ApiRequestError && caught.status === 401) {
@@ -218,8 +223,8 @@ export default function AiDocumentDetailPage() {
 
   return (
     <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
-      <Link href={visitHref ?? documentsHref} className="document-back">
-        {visitHref ? "← 방문 상세로 돌아가기" : "← 문서함"}
+      <Link href={backHref} className="document-back">
+        {backLabel}
       </Link>
       {error ? <p className="msg error">{error}</p> : null}
 

@@ -1,4 +1,5 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
+// 인앱 브라우저처럼 8080 직접 접속을 제한하는 환경에서도 동작하도록 같은 출처의 Next 프록시를 기본으로 쓴다.
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
 export type Me = {
   id: string;
@@ -165,6 +166,39 @@ export type AiDocumentListQuery = {
   size?: number;
 };
 
+export type AiQuestionType = "DOCUMENT_EASY_EXPLANATION" | "LAB_RESULT_COMPARISON";
+
+export type AiChatSession = {
+  sessionId: string;
+  patientId: string;
+  title: string | null;
+  createdAt: string;
+};
+
+export type AiChatMessage = {
+  messageId: string;
+  role: "USER" | "ASSISTANT" | "SYSTEM";
+  content: string;
+  createdAt: string;
+  resultDocumentId?: string | null;
+};
+
+export type AiResultEvidence = {
+  citationId: string;
+  documentId: string | null;
+  pageNo: number | null;
+  label: string | null;
+  sourceText: string | null;
+  value: string | null;
+  unit: string | null;
+};
+
+export type AiResultDocument = {
+  resultDocumentId: string;
+  citationJson: string | null;
+  errorMessage: string | null;
+};
+
 export class ApiRequestError extends Error {
   status: number;
   error: string;
@@ -194,13 +228,15 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   }
   const text = await response.text();
   const contentType = response.headers.get("content-type") ?? "";
+  // 인증되지 않은 요청은 응답 본문/Content-Type이 비어 있어도
+  // 로그인 리다이렉트가 동작하도록 먼저 처리한다.
+  if (response.status === 401) {
+    throw new ApiRequestError(401, "unauthorized");
+  }
   if (text && (text.trim().startsWith("<") || !contentType.includes("json"))) {
     throw new ApiRequestError(response.status || 502, "server");
   }
   const data = text ? JSON.parse(text) : null;
-  if (response.status === 401) {
-    throw new ApiRequestError(401, "unauthorized");
-  }
   if (!response.ok) {
     throw new ApiRequestError(response.status, data?.message ?? data?.error ?? data?.code ?? "fail");
   }
@@ -216,6 +252,38 @@ export async function fetchAiDocuments(query: AiDocumentListQuery = {}) {
   });
   const suffix = params.toString() ? `?${params.toString()}` : "";
   return api<AiDocumentListResponse>(`/api/ai-documents${suffix}`);
+}
+
+export function fetchAiChatSessions(patientId?: string) {
+  const suffix = patientId ? `?patientId=${encodeURIComponent(patientId)}` : "";
+  return api<AiChatSession[]>(`/api/ai-chat-sessions${suffix}`);
+}
+
+export function createAiChatSession(patientId?: string, title?: string) {
+  return api<AiChatSession>("/api/ai-chat-sessions", {
+    method: "POST",
+    body: JSON.stringify({ patientId, title })
+  });
+}
+
+export function fetchAiChatMessages(sessionId: string) {
+  return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`);
+}
+
+export function fetchAiResultDocument(resultDocumentId: string) {
+  return api<AiResultDocument>(`/api/ai-result-documents/${encodeURIComponent(resultDocumentId)}`);
+}
+
+export function askAiChat(
+  sessionId: string,
+  question: string,
+  questionType: AiQuestionType,
+  documentIds: string[]
+) {
+  return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ question, questionType, documentIds })
+  });
 }
 
 export function fetchAiDocument(documentId: string) {
