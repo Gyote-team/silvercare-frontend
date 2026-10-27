@@ -3,6 +3,7 @@ import "./records.css";
 import { useEffect, useRef, useState } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { RecordActions } from "@/components/RecordActions";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { api, ApiRequestError, type CareRelation, type HealthRecord, type HealthRecordPage } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
 
@@ -18,6 +19,7 @@ export default function RecordsPage() {
   const [editing, setEditing] = useState<HealthRecord | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voiceBusy, setVoiceBusy] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [listLoaded, setListLoaded] = useState(false);
   const [reload, setReload] = useState(0);
@@ -89,7 +91,7 @@ export default function RecordsPage() {
   }, [me, ready, caregiver, patientId, reload]);
 
   function changeTarget(target: string) {
-    if (target === patientId || busy) return;
+    if (target === patientId || busy || voiceBusy) return;
     if (text.trim() && !window.confirm("작성 중인 내용이 있습니다. 내용을 지우고 다른 개인으로 전환할까요?")) return;
     ++generation.current;
     setPage(emptyPage); setListLoaded(false); setEditing(null); setText(""); setMessage("");
@@ -155,7 +157,7 @@ export default function RecordsPage() {
     </header>
     {caregiver ? <section className="card records-target">
       <label htmlFor="record-patient">기록할 개인</label>
-      <select id="record-patient" value={patientId} disabled={busy || !ready}
+      <select id="record-patient" value={patientId} disabled={busy || voiceBusy || !ready}
         onChange={(e) => changeTarget(e.target.value)}>
         {!targets.length ? <option value="">연결된 개인이 없습니다</option> : null}
         {targets.map((r) => <option key={r.patientId} value={r.patientId}>{r.counterpartName}</option>)}
@@ -180,6 +182,10 @@ export default function RecordsPage() {
       {editing ? <button className="btn-out" disabled={busy} onClick={() => { setEditing(null); setText(""); }}>수정 취소</button> : null}
     </section> : null}
     {message ? <p className="msg" role="status">{message}</p> : null}
+    {canWrite && <VoiceRecorder key={`${me.id}:${patientId}`} patientId={caregiver ? patientId : undefined} disabled={busy || fetching || !!editing} onBusyChange={setVoiceBusy} onSaved={() => {
+      const token=generation.current;
+      api<HealthRecordPage>(listPath()).then(result=>{if(token===generation.current){setPage(result);setListLoaded(true);}}).catch(()=>setMessage("음성 기록을 저장했어요. 최근 목록은 다시 불러와 주세요."));
+    }} />}
     <div className="records-list-heading"><h2>최근 건강기록</h2><span>최신순</span></div>
     {fetching && !page.items.length ? <p>불러오는 중…</p> : null}
     {!fetching && canWrite && listLoaded && !page.items.length ? <section className="records-empty"><span className="records-empty-icon" aria-hidden="true">✎</span><strong>첫 건강기록을 남겨 보세요</strong><p>오늘 남긴 기록이 다음 진료 때<br />몸 상태를 설명하는 데 도움이 돼요.</p></section> : null}

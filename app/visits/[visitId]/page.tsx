@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { VisitForm } from "@/components/VisitForm";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { useMe } from "@/lib/useMe";
 import { api, ApiRequestError, type HealthRecord } from "@/lib/api";
 import { type Visit, type VisitInput, getVisit, cancelVisit, writeVisit, visitDateLabel, visitError, visitStatusLabel } from "@/lib/visits";
@@ -16,6 +17,7 @@ export default function VisitDetailPage() {
   const [visit, setVisit] = useState<Visit | null>(null);
   const [fetching, setFetching] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [voiceBusy, setVoiceBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [stale, setStale] = useState(false);
@@ -64,7 +66,7 @@ export default function VisitDetailPage() {
     finally { setBusy(false); }
   }
   async function cancel() {
-    if (busy || stale || !visit || visit.visitStatus === "CANCELED") return;
+    if (busy || voiceBusy || stale || !visit || visit.visitStatus === "CANCELED") return;
     if (!window.confirm("이 방문을 취소할까요? 연결된 건강기록과 서류는 유지돼요. 취소한 방문은 수정할 수 없어요.")) return;
     setBusy(true); setError(""); setMessage("");
     try {
@@ -96,10 +98,11 @@ export default function VisitDetailPage() {
         <h2>{visit.hospitalName || "병원명 미입력"}</h2><p className="visit-date">{visitDateLabel(visit.visitedOn)}</p>
         <dl><div><dt>진료과</dt><dd>{visit.department || "미입력"}</dd></div><div><dt>방문 메모</dt><dd className="visit-memo">{visit.memo || "남긴 메모가 없어요."}</dd></div></dl>
         {visit.visitStatus === "CANCELED" ? <p className="visit-canceled-note">취소된 방문이에요. 정보는 수정할 수 없지만 연결된 자료는 계속 확인할 수 있어요.</p> : <div className="visit-detail-actions">
-          <button className="btn-out" disabled={busy || stale} onClick={() => setEditing(true)}>방문 수정</button>
-          <button className="btn-out visit-cancel" disabled={busy || stale} onClick={cancel}>{busy ? "처리 중…" : "방문 취소"}</button>
+          <button className="btn-out" disabled={busy || voiceBusy || stale} onClick={() => setEditing(true)}>방문 수정</button>
+          <button className="btn-out visit-cancel" disabled={busy || voiceBusy || stale} onClick={cancel}>{busy ? "처리 중…" : "방문 취소"}</button>
         </div>}
       </section>}
+      <VoiceRecorder key={`${me.id}:${id}`} patientId={caregiver ? visit.patientId : undefined} visitId={id} readOnly={visit.visitStatus === "CANCELED"} disabled={busy || editing || stale} onBusyChange={setVoiceBusy} onSaved={()=>setReload(value=>value+1)} />
       <section className="visit-linked card"><h2>연결된 자료</h2>
         <p>건강기록 {visit.healthRecordIds.length}건 · 병원 서류 {visit.documentIds.length}건</p>
         {!visit.healthRecordIds.length && <p className="visit-hint">이 방문에 연결된 건강기록이 없어요.</p>}

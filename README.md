@@ -34,3 +34,10 @@ npm run build
 
 - Backend: https://github.com/Gyote-team/silvercare-backend
 - AI 서버: 별도 Python 레포 예정
+
+## 음성 기록
+
+`/records`에서 건강 음성을, `/visits/{visitId}`에서 진료실 녹음을 올리고 변환 초안을 확인·수정·확정할 수 있습니다. 확정 전에는 건강기록에 저장하지 않습니다. 마이크를 사용할 수 없는 브라우저는 음성 파일을 선택할 수 있습니다.
+
+실제 변환에는 백엔드의 음성 마이그레이션과 `VOICE_ENABLED=true`, 같은 DB·저장소를 사용하는 AI 음성 작업자 및 STT 키 설정이 필요합니다. 기본 비활성 환경은 업로드 시 사용 불가 안내를 표시합니다. 브라우저 마이크는 HTTPS 또는 localhost 환경에서 사용합니다.
+

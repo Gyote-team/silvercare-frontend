@@ -1,0 +1,21 @@
+.voice-panel { margin: 20px 0; padding: 20px; border: 1px solid #d4e3ed; border-radius: 18px; background: #fff; color: #36556b; }
+.voice-panel h2 { margin: 0 0 10px; font-size: 20px; }
+.voice-panel h3 { font-size: 16px; margin-top: 22px; }
+.voice-help { font-size: 13px; color: #6a8192; line-height: 1.7; }
+.voice-consent { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; line-height: 1.7; font-size: 14px; }
+.voice-consent input { width: 20px; height: 20px; flex-shrink: 0; margin-top: 3px; }
+.voice-controls, .voice-selected, .voice-job-actions { display: grid; gap: 12px; }
+.voice-controls input { display: block; margin: 10px 0; max-width: 100%; font: inherit; font-size: 14px; }
+.voice-panel button { min-height: 48px; cursor: pointer; }
+.voice-panel button:disabled { opacity: .55; cursor: default; }
+.voice-panel button:focus-visible, .voice-panel input:focus-visible, .voice-panel textarea:focus-visible { outline: 3px solid #76b8e3; outline-offset: 3px; }
+.voice-job { margin-top: 18px; padding: 16px; background: #f4f9fd; border-radius: 14px; }
+.voice-job label { display: block; margin-top: 16px; }
+.voice-job textarea { width: 100%; min-height: 140px; margin: 10px 0; padding: 12px; border: 1px solid #cedfeb; border-radius: 12px; font: inherit; line-height: 1.8; }
+.voice-job-actions { margin-top: 12px; }
+.voice-message { padding: 12px; border-radius: 10px; background: #eaf5ef; line-height: 1.7; }
+.voice-error { padding: 12px; border-radius: 10px; background: #fff0ef; color: #985650; line-height: 1.7; }
+.voice-confirmed { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.voice-history { padding: 0; list-style: none; display: grid; gap: 8px; }
+.voice-history button { width: 100%; padding: 10px 12px; border: 1px solid #d6e4ef; border-radius: 10px; background: #fff; color: inherit; font: inherit; text-align: left; font-size: 14px; }
+.voice-history button[aria-pressed="true"] { background: #eaf4fc; border-color: #86b8dd; }
