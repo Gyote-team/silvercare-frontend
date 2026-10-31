@@ -209,7 +209,7 @@ export type AiResultDocument = {
   citationJson: string | null;
   errorMessage: string | null;
 };
-export type AiDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; content: string | null; citationJson: string | null; pdfFileName: string | null; errorMessage: string | null; };
+export type AiDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; content: string | null; citationJson: string | null; pdfFileName: string | null; errorMessage: string | null; sourcePreview: string | null; };
 
 export class ApiRequestError extends Error {
   status: number;
