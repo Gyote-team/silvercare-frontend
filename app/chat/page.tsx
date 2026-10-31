@@ -11,7 +11,7 @@ import {
   fetchAiChatMessages,
   fetchAiChatSessions,
   fetchAiResultDocument,
-  saveAiResultDocument,
+  createAiDetailedDocument,
   fetchMedicalDocuments,
   api,
   type CareRelation,
@@ -316,8 +316,9 @@ function ChatContent() {
   async function saveResult(message: AiChatMessage) {
     if (!message.resultDocumentId) return;
     try {
-      await saveAiResultDocument(message.resultDocumentId);
+      const detailed = await createAiDetailedDocument(message.resultDocumentId);
       setSavedResults((current) => ({ ...current, [message.resultDocumentId!]: true }));
+      if (detailed.status === "READY") window.location.assign(`/ai-detailed-documents/${detailed.detailedDocumentId}`);
     } catch (reason) { setError(failureMessage(reason)); }
   }
 

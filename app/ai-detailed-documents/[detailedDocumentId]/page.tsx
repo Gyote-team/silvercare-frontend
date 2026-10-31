@@ -1,0 +1,6 @@
+"use client";
+import Link from "next/link"; import { use, useEffect, useState } from "react";
+import { PhoneFrame } from "@/components/PhoneFrame"; import { SafeMarkdown } from "@/components/SafeMarkdown"; import { api, type AiDetailedDocument } from "@/lib/api";
+export default function DetailedDocumentPage({params}:{params:Promise<{detailedDocumentId:string}>}) { const {detailedDocumentId}=use(params); const [doc,setDoc]=useState<AiDetailedDocument|null>(null);
+ useEffect(()=>{api<AiDetailedDocument>(`/api/ai-detailed-documents/${detailedDocumentId}`).then(setDoc)},[detailedDocumentId]);
+ return <PhoneFrame tab="documents"><Link href="/chat" className="ai-result-back">‹ 채팅으로</Link>{!doc?<p className="page-sub">상세 문서를 준비하고 있어요…</p>:<article className="ai-result-detail"><header><div className="ai-result-kicker">AI 상세 설명</div><h1>{doc.title}</h1><p>{doc.status === "READY" ? "저장 완료" : doc.status === "FAILED" ? doc.errorMessage : "생성 중"}</p></header>{doc.status === "READY"?<><div className="ai-result-content"><SafeMarkdown>{doc.content || ""}</SafeMarkdown></div><a className="btn-primary" href={`/api/ai-detailed-documents/${doc.detailedDocumentId}/download`}>PDF 내보내기</a></>:null}</article>}</PhoneFrame> }
