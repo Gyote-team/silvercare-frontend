@@ -166,7 +166,7 @@ export type AiDocumentListQuery = {
   size?: number;
 };
 
-export type AiQuestionType = "DOCUMENT_EASY_EXPLANATION" | "LAB_RESULT_COMPARISON";
+export type AiQuestionType = "DOCUMENT_EASY_EXPLANATION" | "LAB_RESULT_COMPARISON" | "TEST_RESULT_COMPARISON" | "LAB_REFERENCE_RANGE" | "MEDICATION_SUMMARY" | "FOLLOW_UP_SCHEDULE" | "VISIT_CHECKLIST" | "SOURCE_LOOKUP";
 
 export type AiChatSession = {
   sessionId: string;
@@ -181,6 +181,9 @@ export type AiChatMessage = {
   content: string;
   createdAt: string;
   resultDocumentId?: string | null;
+  contentFormat?: "MARKDOWN" | null;
+  classifiedQuestionType?: AiQuestionType | null;
+  documentSaveStatus?: "DRAFT" | "SAVED" | null;
 };
 
 export type AiResultEvidence = {
@@ -195,9 +198,18 @@ export type AiResultEvidence = {
 
 export type AiResultDocument = {
   resultDocumentId: string;
+  jobStatus: string;
+  resultStatus: string | null;
+  title: string | null;
+  content: string | null;
+  contentFormat: "MARKDOWN";
+  questionType: string;
+  saveStatus: "DRAFT" | "SAVED";
+  savedAt: string | null;
   citationJson: string | null;
   errorMessage: string | null;
 };
+export type AiDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; content: string | null; citationJson: string | null; pdfFileName: string | null; errorMessage: string | null; sourcePreview: string | null; };
 
 export class ApiRequestError extends Error {
   status: number;
@@ -269,15 +281,26 @@ export function createAiChatSession(patientId?: string, title?: string) {
 export function fetchAiChatMessages(sessionId: string) {
   return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`);
 }
+export type AiChatDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; pdfFileName: string | null; createdAt: string; };
+export function fetchAiChatDetailedDocuments(sessionId: string) { return api<AiChatDetailedDocument[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/documents`); }
 
 export function fetchAiResultDocument(resultDocumentId: string) {
   return api<AiResultDocument>(`/api/ai-result-documents/${encodeURIComponent(resultDocumentId)}`);
 }
 
+export function fetchSavedAiResultDocuments() {
+  return api<AiResultDocument[]>("/api/ai-result-documents");
+}
+
+export function saveAiResultDocument(resultDocumentId: string) {
+  return api<AiResultDocument>(`/api/ai-result-documents/${encodeURIComponent(resultDocumentId)}/save`, { method: "POST" });
+}
+export function createAiDetailedDocument(resultDocumentId: string) { return api<AiDetailedDocument>(`/api/ai-detailed-documents/from-result/${encodeURIComponent(resultDocumentId)}`, { method: "POST" }); }
+
 export function askAiChat(
   sessionId: string,
   question: string,
-  questionType: AiQuestionType,
+  questionType: AiQuestionType | undefined,
   documentIds: string[]
 ) {
   return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`, {
