@@ -391,13 +391,21 @@ function ChatContent() {
         <section className="chat-thread" aria-live="polite">
           {messages.map((message) => (
             <article key={message.messageId} className={`chat-bubble ${message.role === "USER" ? "mine" : "assistant"}`}>
-              <span className="chat-role">{message.role === "USER" ? "나" : "SilverCare AI"}</span>
+              {message.role === "ASSISTANT" ? (
+                <div className="chat-answer-heading">
+                  <span className="chat-ai-mark" aria-hidden="true">✦</span>
+                  <span><strong>SilverCare AI</strong><small>선택한 의료문서의 근거를 바탕으로 답변했어요</small></span>
+                </div>
+              ) : <span className="chat-role">나</span>}
               {message.role === "ASSISTANT" ? <SafeMarkdown>{message.content}</SafeMarkdown> : <p>{message.content}</p>}
-              <time>{dateTime(message.createdAt)}</time>
+              <div className="chat-message-footer"><time>{dateTime(message.createdAt)}</time>{message.role === "ASSISTANT" ? <span>AI 답변</span> : null}</div>
               {message.role === "ASSISTANT" && message.resultDocumentId ? (
                 <>
-                  <button type="button" className="citation-link" onClick={() => showEvidence(message)}>{openEvidence === message.messageId ? "원문 근거 닫기" : "원문 근거 보기"}</button>
-                  <div className="result-save-cta"><span>이 답변을 문서로 저장할까요?</span>{savedResults[message.resultDocumentId] ? <Link href={`/ai-result-documents/${message.resultDocumentId}`}>저장된 문서 보기</Link> : <button type="button" onClick={() => saveResult(message)}>문서로 저장</button>}</div>
+                  <div className="chat-answer-tools">
+                    <button type="button" className="citation-link" onClick={() => showEvidence(message)}><span aria-hidden="true">⌁</span>{openEvidence === message.messageId ? "원문 근거 닫기" : "답변 근거 확인"}</button>
+                    <span className="chat-answer-tools-note">답변은 진료를 대신하지 않아요</span>
+                  </div>
+                  <div className="result-save-cta"><span className="result-save-icon" aria-hidden="true">▣</span><span><strong>답변을 내 문서에 보관</strong><small>언제든 문서함에서 다시 확인할 수 있어요</small></span>{savedResults[message.resultDocumentId] ? <Link href={`/ai-result-documents/${message.resultDocumentId}`}>문서 보기</Link> : <button type="button" onClick={() => saveResult(message)}>문서로 저장</button>}</div>
                   {openEvidence === message.messageId ? <div className="chat-evidence-list">
                     {evidence[message.messageId]?.length ? evidence[message.messageId].map((source) => <div key={source.citationId} className="chat-evidence-item">
                       <div><span>원문 근거</span><small>{source.pageNo ? `${source.pageNo}쪽` : "페이지 정보 없음"}</small></div>
