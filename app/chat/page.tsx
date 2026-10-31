@@ -9,6 +9,7 @@ import {
   askAiChat,
   createAiChatSession,
   fetchAiChatMessages,
+  fetchAiChatDetailedDocuments,
   fetchAiChatSessions,
   fetchAiResultDocument,
   createAiDetailedDocument,
@@ -89,6 +90,7 @@ function ChatContent() {
   const [evidence, setEvidence] = useState<Record<string, AiResultEvidence[]>>({});
   const [openEvidence, setOpenEvidence] = useState<string | null>(null);
   const [savedResults, setSavedResults] = useState<Record<string, boolean>>({});
+  const [roomDocuments, setRoomDocuments] = useState<import("@/lib/api").AiChatDetailedDocument[]>([]);
 
   const selectedCount = selectedDocumentIds.length;
   const hasDocuments = documents.length > 0;
@@ -368,7 +370,7 @@ function ChatContent() {
       </section> : null}
 
       {(me.role !== "CAREGIVER" || patientId) && session ? <div className="chat-sticky-tools">
-        <div className="chat-active-room"><button type="button" onClick={() => { selectSession(null); setMessages([]); setQuestion(""); }}>‹ 목록</button><strong>{session.title || "새 채팅"}</strong></div>
+        <div className="chat-active-room"><button type="button" onClick={() => { selectSession(null); setMessages([]); setQuestion(""); }}>‹ 목록</button><strong>{session.title || "새 채팅"}</strong><details className="chat-room-documents"><summary onClick={() => fetchAiChatDetailedDocuments(session.sessionId).then(setRoomDocuments).catch(() => setRoomDocuments([]))}>문서함 {roomDocuments.length}</summary><div>{roomDocuments.length ? roomDocuments.map((doc) => <Link key={doc.detailedDocumentId} href={`/ai-detailed-documents/${doc.detailedDocumentId}`}>{doc.title || "AI 상세 설명"}<small>{doc.status === "READY" ? "PDF 준비 완료" : doc.status === "FAILED" ? "생성 실패" : "생성 중"}</small></Link>) : <p>이 채팅방에 저장한 문서가 없습니다.</p>}</div></details></div>
         <details className="chat-doc-dock">
           <summary className="chat-doc-toggle"><span><i className="doc-stack">▤</i><strong>답변에 사용할 문서</strong><small>{selectedCount}/{documents.length}</small></span><span className="doc-toggle-action">문서 선택 <i className="toggle-chevron" /></span></summary>
           <div className="chat-doc-panel"><div className="chat-doc-panel-head"><strong>원하는 문서만 선택하세요</strong><small>{sourceSummary}</small></div>

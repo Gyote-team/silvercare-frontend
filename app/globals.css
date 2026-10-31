@@ -2409,6 +2409,12 @@ textarea.record-area {
 .chat-active-room { top: 76px; padding: 8px 4px 10px; background: transparent; }
 .chat-active-room button { padding: 6px 7px; border-radius: 8px; background: #eaf4f8; color: #4d829e; }
 .chat-active-room strong { color: #345568; font-size: 12px; }
+.chat-room-documents { margin-left:auto; position:relative; }
+.chat-room-documents summary { list-style:none; cursor:pointer; padding:7px 9px; border-radius:9px; background:#eaf6f3; color:#387e70; font-size:10px; font-weight:800; }
+.chat-room-documents summary::-webkit-details-marker { display:none; }
+.chat-room-documents > div { position:absolute; right:0; top:34px; z-index:20; width:220px; padding:10px; border:1px solid #d9e8e6; border-radius:14px; background:#fff; box-shadow:0 14px 32px rgba(42,80,91,.17); }
+.chat-room-documents a { display:grid; gap:3px; padding:9px; border-bottom:1px solid #edf3f2; color:#3e6570; font-size:11px; font-weight:700; text-decoration:none; }
+.chat-room-documents small,.chat-room-documents p { margin:0; color:#8a9da1; font-size:9px; font-weight:500; }
 
 .chat-thread { gap: 16px; }
 .chat-bubble { gap: 7px; max-width: 92%; padding: 14px 15px 12px; border-radius: 19px; }

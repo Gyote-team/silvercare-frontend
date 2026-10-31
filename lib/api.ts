@@ -281,6 +281,8 @@ export function createAiChatSession(patientId?: string, title?: string) {
 export function fetchAiChatMessages(sessionId: string) {
   return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`);
 }
+export type AiChatDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; pdfFileName: string | null; createdAt: string; };
+export function fetchAiChatDetailedDocuments(sessionId: string) { return api<AiChatDetailedDocument[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/documents`); }
 
 export function fetchAiResultDocument(resultDocumentId: string) {
   return api<AiResultDocument>(`/api/ai-result-documents/${encodeURIComponent(resultDocumentId)}`);
