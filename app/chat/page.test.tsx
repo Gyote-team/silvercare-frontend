@@ -46,7 +46,7 @@ describe("채팅방 전환 중 답변 도착", () => {
     fireEvent.click((await screen.findByText("새 채팅", { selector: "strong" })).closest("button")!);
     fireEvent.change(screen.getByPlaceholderText("더 자세한 질문을 남겨 주세요…"), { target: { value: "A방 질문" } });
     fireEvent.click(screen.getByRole("button", { name: "질문 보내기" }));
-    await waitFor(() => expect(mocks.askAiChat).toHaveBeenCalledWith("room-a", "A방 질문", "DOCUMENT_EASY_EXPLANATION", ["doc-1"]));
+    await waitFor(() => expect(mocks.askAiChat).toHaveBeenCalledWith("room-a", "A방 질문", undefined, ["doc-1"]));
 
     fireEvent.click(screen.getByRole("button", { name: "‹ 목록" }));
     fireEvent.click(screen.getByRole("button", { name: /B방/ }));

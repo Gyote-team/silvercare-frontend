@@ -11,6 +11,7 @@ import {
   fetchAiChatMessages,
   fetchAiChatSessions,
   fetchAiResultDocument,
+  saveAiResultDocument,
   fetchMedicalDocuments,
   api,
   type CareRelation,
@@ -20,6 +21,7 @@ import {
   type AiQuestionType,
   type MedicalDocumentListItem
 } from "@/lib/api";
+import { SafeMarkdown } from "@/components/SafeMarkdown";
 import { useMe } from "@/lib/useMe";
 import { citedEvidence } from "@/lib/aiResultEvidence";
 
@@ -79,7 +81,6 @@ function ChatContent() {
   const [documents, setDocuments] = useState<MedicalDocumentListItem[]>([]);
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
   const [question, setQuestion] = useState("");
-  const [questionType, setQuestionType] = useState<AiQuestionType>("DOCUMENT_EASY_EXPLANATION");
   const [busy, setBusy] = useState(false);
   const [creatingSession, setCreatingSession] = useState(false);
   const [error, setError] = useState("");
@@ -87,6 +88,7 @@ function ChatContent() {
   const selectionVersion = useRef(0);
   const [evidence, setEvidence] = useState<Record<string, AiResultEvidence[]>>({});
   const [openEvidence, setOpenEvidence] = useState<string | null>(null);
+  const [savedResults, setSavedResults] = useState<Record<string, boolean>>({});
 
   const selectedCount = selectedDocumentIds.length;
   const hasDocuments = documents.length > 0;
@@ -252,7 +254,7 @@ function ChatContent() {
   async function submit(event?: FormEvent, preset?: typeof guides[number]) {
     event?.preventDefault();
     const nextQuestion = preset?.question ?? question.trim();
-    const nextType = preset?.type ?? questionType;
+    const nextType = preset?.type;
     if (!nextQuestion || !selectedDocumentIds.length || busy || (me?.role === "CAREGIVER" && !patientId)) return;
     setBusy(true);
     setError("");
@@ -309,6 +311,14 @@ function ChatContent() {
       }
       setError(failureMessage(reason));
     }
+  }
+
+  async function saveResult(message: AiChatMessage) {
+    if (!message.resultDocumentId) return;
+    try {
+      await saveAiResultDocument(message.resultDocumentId);
+      setSavedResults((current) => ({ ...current, [message.resultDocumentId!]: true }));
+    } catch (reason) { setError(failureMessage(reason)); }
   }
 
   if (meLoading || !me) return <PhoneFrame tab="chat"><p className="page-sub">불러오는 중…</p></PhoneFrame>;
@@ -382,11 +392,12 @@ function ChatContent() {
           {messages.map((message) => (
             <article key={message.messageId} className={`chat-bubble ${message.role === "USER" ? "mine" : "assistant"}`}>
               <span className="chat-role">{message.role === "USER" ? "나" : "SilverCare AI"}</span>
-              <p>{message.content}</p>
+              {message.role === "ASSISTANT" ? <SafeMarkdown>{message.content}</SafeMarkdown> : <p>{message.content}</p>}
               <time>{dateTime(message.createdAt)}</time>
               {message.role === "ASSISTANT" && message.resultDocumentId ? (
                 <>
                   <button type="button" className="citation-link" onClick={() => showEvidence(message)}>{openEvidence === message.messageId ? "원문 근거 닫기" : "원문 근거 보기"}</button>
+                  <div className="result-save-cta"><span>이 답변을 문서로 저장할까요?</span>{savedResults[message.resultDocumentId] ? <Link href={`/ai-result-documents/${message.resultDocumentId}`}>저장된 문서 보기</Link> : <button type="button" onClick={() => saveResult(message)}>문서로 저장</button>}</div>
                   {openEvidence === message.messageId ? <div className="chat-evidence-list">
                     {evidence[message.messageId]?.length ? evidence[message.messageId].map((source) => <div key={source.citationId} className="chat-evidence-item">
                       <div><span>원문 근거</span><small>{source.pageNo ? `${source.pageNo}쪽` : "페이지 정보 없음"}</small></div>
