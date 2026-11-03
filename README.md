@@ -41,3 +41,9 @@ npm run build
 
 실제 변환에는 백엔드의 음성 마이그레이션과 `VOICE_ENABLED=true`, 같은 DB·저장소를 사용하는 AI 음성 작업자 및 STT 키 설정이 필요합니다. 기본 비활성 환경은 업로드 시 사용 불가 안내를 표시합니다. 브라우저 마이크는 HTTPS 또는 localhost 환경에서 사용합니다.
 
+## 진료 전 요약 (#16)
+
+홈에서 `/previsit`로 이동해 최근 7·14·30일 건강기록을 요약할 수 있습니다. 개인은 본인, 보호자는 ACTIVE 연결된 개인을 선택합니다. 비동기 상태와 요약에 사용한 원본 기록을 함께 표시하며, 계정·대상별 마지막 요청 식별자만 기억해 새로고침 후 다시 조회합니다. 원본이 수정·삭제되거나 연결이 해제되면 기존 결과를 숨기고 재요청을 안내합니다.
+
+Spring에 `V202611031000__previsit_summaries.sql`과 `PREVISIT_ENABLED=true`, AI 서버에 전용 `PREVISIT_SUMMARY_API_KEY` 설정이 필요합니다. 프론트에는 API 키를 넣지 않습니다. 상세 계약은 백엔드 `docs/issues/issue-16-previsit-summary.md`를 따릅니다.
+
