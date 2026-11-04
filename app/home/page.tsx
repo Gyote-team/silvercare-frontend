@@ -284,11 +284,11 @@ function HomeBody() {
 
       <div className="section-label">
         <span>진료 전 AI 요약</span>
-        <Link href="/timeline">전체보기 ›</Link>
+        <Link href="/previsit">전체보기 ›</Link>
       </div>
-      <Link className="summary-preview" href="/timeline">
-        <span className="tag">10월 15일 재진 대비 준비 중</span>
-        <p>최근 2주간 무릎 불편감 <b>7회</b> 기록됨 (최초 8월 12일). 계단 이용 시 특히 불편, 최근 기록 빈도 증가 추세.</p>
+      <Link className="summary-preview" href="/previsit">
+        <span className="tag">최근 건강기록으로 진료 준비</span>
+        <p>직접 남긴 건강기록을 모아 AI 요약과 원본 기록을 함께 확인해 보세요.</p>
         <div className="go">의료진에게 전달할 요약 전체 보기 →</div>
       </Link>
 

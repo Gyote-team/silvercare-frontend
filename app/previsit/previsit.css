@@ -1,0 +1,22 @@
+.previsit-screen { padding:24px 20px 40px; background:linear-gradient(180deg,#edf7fc 0,#f8fbfd 320px); color:#24485b; }
+.previsit-back { display:inline-block; margin-bottom:28px; color:#466c81; text-decoration:none; }
+.previsit-eyebrow { font-size:13px; font-weight:600; color:#4583a3; }
+.previsit-screen h1 { font-size:29px; margin:8px 0 10px; letter-spacing:-1px; }
+.previsit-screen header p { color:#668394; line-height:1.8; margin-bottom:26px; }
+.previsit-panel { display:grid; gap:16px; }
+.previsit-card { background:white; border:1px solid #dceaf1; border-radius:22px; padding:22px; margin-bottom:16px; }
+.previsit-panel .previsit-card { margin-bottom:0; }
+.previsit-card label { display:block; font-weight:700; margin-bottom:10px; }
+.previsit-card select { width:100%; padding:13px; border:1px solid #b9d2e1; border-radius:12px; background:white; color:#24485b; font:inherit; }
+.previsit-card p { font-size:14px; line-height:1.8; color:#668394; }
+.previsit-card .btn { width:100%; margin-top:8px; min-height:48px; }
+.previsit-result-label { color:#438caf; font-size:13px; font-weight:700; }
+.previsit-card h2 { margin:8px 0 18px; font-size:21px; }
+.previsit-card .previsit-text { white-space:pre-wrap; color:#294d62; font-size:16px; overflow-wrap:anywhere; }
+.previsit-card .previsit-disclaimer { padding:14px; background:#f1f7fa; border-radius:12px; font-size:12px; margin:20px 0; }
+.previsit-card summary { cursor:pointer; font-size:14px; font-weight:600; }
+.previsit-source { margin-top:14px; padding-top:14px; border-top:1px solid #e2edf3; }
+.previsit-source time { font-size:12px; color:#6c8b9d; }
+.previsit-source p { white-space:pre-wrap; overflow-wrap:anywhere; }
+.previsit-notice { color:#a24c2c; font-size:14px; line-height:1.6; }
+.previsit-screen button:disabled { opacity:.55; cursor:default; }
