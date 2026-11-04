@@ -47,3 +47,5 @@ npm run build
 
 Spring에 `V202611031000__previsit_summaries.sql`과 `PREVISIT_ENABLED=true`, AI 서버에 전용 `PREVISIT_SUMMARY_API_KEY` 설정이 필요합니다. 프론트에는 API 키를 넣지 않습니다. 상세 계약은 백엔드 `docs/issues/issue-16-previsit-summary.md`를 따릅니다.
 
+2026-11-04 최신 develop의 채팅·문서 화면을 병합했습니다. 대기 중 원본 변경·권한 해제·요청 소실은 반복 조회를 중단하고 재요청할 수 있게 처리했습니다. sessionStorage가 제한돼도 현재 화면에서 결과를 확인할 수 있습니다. 전체 테스트 22건과 타입 검사·배포 빌드를 통과했습니다.
+

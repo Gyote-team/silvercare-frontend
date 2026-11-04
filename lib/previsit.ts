@@ -15,6 +15,7 @@ export function previsitError(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.status === 403) return "이 개인의 요약을 볼 권한이 없어요. 연결 상태를 확인해 주세요.";
     if (error.status === 409) return "원본 기록이 변경됐어요. 현재 기록으로 요약을 새로 만들어 주세요.";
+    if (error.status === 404) return "이전 요약 요청을 찾을 수 없어요. 현재 기록으로 새로 만들어 주세요.";
     if (error.status === 503) return "요약 서비스를 준비 중이에요. 잠시 후 다시 시도해 주세요.";
     return error.message;
   }

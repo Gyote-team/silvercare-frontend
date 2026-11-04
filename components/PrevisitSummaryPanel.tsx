@@ -16,11 +16,14 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
   const [reload, setReload] = useState(0);
   const requestKey = useRef("");
   const postAbort = useRef<AbortController | null>(null);
+  const pollAbort = useRef<AbortController | null>(null);
   const storageKey = `previsit:${userId}:${patientId ?? "self"}`;
   const pending = posting || reading || operation?.jobStatus === "QUEUED" || operation?.jobStatus === "RUNNING";
+  const busy = posting || reading || (!!pending && !paused);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(storageKey) ?? "";
+    let stored = "";
+    try { stored = sessionStorage.getItem(storageKey) ?? ""; } catch { /* 저장소를 사용할 수 없어도 요약은 이용할 수 있다. */ }
     setReading(!!stored); setRequestId(stored);
     return () => postAbort.current?.abort();
   }, [storageKey]);
@@ -39,6 +42,7 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
   useEffect(() => {
     if (!requestId) return;
     const controller = new AbortController();
+    pollAbort.current = controller;
     let timer: ReturnType<typeof setTimeout>;
     let failures = 0;
     let attempts = 0;
@@ -54,6 +58,11 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
         failures++;
         // 조회 실패나 권한 변경 시 이전 본문을 남기지 않는다.
         setDetail(null); setReading(false); setMessage(previsitError(error));
+        if (error instanceof ApiRequestError && [401, 403, 404, 409].includes(error.status)) {
+          setOperation(null); setRequestId(""); requestKey.current = "";
+          try { sessionStorage.removeItem(storageKey); } catch { /* 브라우저 저장 제한은 조회 오류를 바꾸지 않는다. */ }
+          return;
+        }
         if (failures >= 3) { setPaused(true); return; }
       }
       if (++attempts >= 150) {
@@ -63,14 +72,16 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
     }
     void tick();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [requestId, reload, load]);
+  }, [requestId, reload, load, storageKey]);
 
   async function create() {
-    if (posting || (pending && !paused)) return;
+    if (busy) return;
     postAbort.current?.abort();
+    pollAbort.current?.abort();
     const controller = new AbortController(); postAbort.current = controller;
     if (!requestKey.current) requestKey.current = crypto.randomUUID();
-    setPosting(true); setMessage(""); setDetail(null);
+    setPosting(true); setPaused(false); setReading(false); setMessage(""); setDetail(null);
+    setRequestId(""); setOperation(null);
     try {
       const result = await api<{ requestId: string; statusUrl: string }>("/api/previsit-summaries", {
         method: "POST", signal: controller.signal,
@@ -78,7 +89,7 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
         body: JSON.stringify({ ...(patientId ? { patientId } : {}), windowDays: days })
       });
       if (controller.signal.aborted) return;
-      sessionStorage.setItem(storageKey, result.requestId);
+      try { sessionStorage.setItem(storageKey, result.requestId); } catch { /* 새로고침 복원 없이 현재 화면에서 결과를 조회한다. */ }
       requestKey.current = ""; setRequestId(result.requestId);
       setOperation({ requestId: result.requestId, operationType: "PREVISIT_SUMMARY", jobStatus: "QUEUED", resultStatus: null, summaryId: null, retryable: false, errorCode: null }); setReload(n => n + 1);
     } catch (error) {
@@ -94,13 +105,13 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
   return <div className="previsit-panel">
     <section className="previsit-card">
       <label htmlFor="previsit-days">요약할 기간</label>
-      <select id="previsit-days" value={days} disabled={!!pending && !paused} onChange={e => {
+      <select id="previsit-days" value={days} disabled={busy} onChange={e => {
         setDays(Number(e.target.value)); requestKey.current = "";
       }}>
         <option value={7}>최근 7일</option><option value={14}>최근 14일</option><option value={30}>최근 30일</option>
       </select>
       <p>작성한 건강기록에서 진료 전에 함께 확인할 내용을 정리해요. 기록을 수정·삭제하면 요약을 다시 만들어 주세요.</p>
-      <button className="btn primary" disabled={!!pending && !paused} onClick={create}>
+      <button className="btn primary" disabled={busy} onClick={create}>
         {posting ? "요약 요청 중…" : "현재 기록으로 요약 만들기"}
       </button>
     </section>
@@ -115,7 +126,7 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
         : operation.errorCode === "AI_API_KEY_MISSING" ? "요약 서비스 설정이 아직 준비되지 않았어요."
         : "잠시 후 현재 기록으로 다시 요청해 주세요."}</p>
     </section>}
-    {requestId && <button className="btn" onClick={() => setReload(n => n + 1)}>요약 상태 다시 불러오기</button>}
+    {requestId && <button className="btn" disabled={posting} onClick={() => setReload(n => n + 1)}>요약 상태 다시 불러오기</button>}
     {detail && <section className="previsit-card previsit-result">
       <div className="previsit-result-label">{operation?.resultStatus === "INSUFFICIENT" ? "요약할 기록이 없어요" : `최근 ${detail.windowDays}일 요약`}</div>
       <h2>진료 전에 함께 확인해요</h2>

@@ -16,9 +16,43 @@ const detail = { summaryId: "summary-1", summary: "사용자가 산책을 기록
   sourceRecords: [{ healthRecordId: "record-1", recordedAt: "2026-11-02T00:00:00Z", content: "산책 10분" }] };
 
 beforeEach(() => { mocks.api.mockReset(); sessionStorage.clear(); });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("진료 전 요약", () => {
+  it("대기 중 원본 변경이 확인되면 오래된 요청을 지우고 새로 요청할 수 있다", async () => {
+    sessionStorage.setItem("previsit:person:self", "old-request");
+    mocks.api.mockResolvedValueOnce({ ...operation, jobStatus: "QUEUED", summaryId: null });
+    render(<PrevisitSummaryPanel userId="person" />);
+    await screen.findByRole("status");
+    mocks.api.mockRejectedValueOnce(new ApiRequestError(409, "changed"));
+    fireEvent.click(screen.getByRole("button", { name: "요약 상태 다시 불러오기" }));
+    await screen.findByRole("alert");
+    expect(sessionStorage.getItem("previsit:person:self")).toBeNull();
+    const button = screen.getByRole("button", { name: "현재 기록으로 요약 만들기" }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+    mocks.api.mockResolvedValueOnce({ requestId: "request-1" }).mockResolvedValueOnce(operation).mockResolvedValueOnce(detail);
+    fireEvent.click(button);
+    expect(await screen.findByText(detail.summary)).toBeTruthy();
+  });
+
+  it("연결이 해제된 저장 요청은 반복 조회하지 않고 즉시 숨긴다", async () => {
+    sessionStorage.setItem("previsit:person:self", "old-request");
+    mocks.api.mockRejectedValueOnce(new ApiRequestError(403, "denied"));
+    render(<PrevisitSummaryPanel userId="person" />);
+    await screen.findByRole("alert");
+    expect(mocks.api).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: "요약 상태 다시 불러오기" })).toBeNull();
+    expect(sessionStorage.getItem("previsit:person:self")).toBeNull();
+  });
+
+  it("브라우저 저장소 쓰기가 차단돼도 접수된 요약 결과를 표시한다", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("storage denied"); });
+    mocks.api.mockResolvedValueOnce({ requestId: "request-1" }).mockResolvedValueOnce(operation).mockResolvedValueOnce(detail);
+    render(<PrevisitSummaryPanel userId="person" />);
+    fireEvent.click(screen.getByRole("button", { name: "현재 기록으로 요약 만들기" }));
+    expect(await screen.findByText(detail.summary)).toBeTruthy();
+  });
+
   it("기간과 대상만 보내며 생성된 요청 상태에서 결과를 조회한다", async () => {
     mocks.api.mockResolvedValueOnce({ requestId: "request-1", statusUrl: "/api/ai-operations/request-1" })
       .mockResolvedValueOnce(operation).mockResolvedValueOnce(detail);
