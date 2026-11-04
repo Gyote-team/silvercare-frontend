@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { AiResultDocumentsSection } from "@/components/AiResultDocumentsSection";
 import {
   ApiRequestError,
   api,
@@ -511,6 +512,8 @@ function DocumentsPageContent() {
     <PhoneFrame tab="documents" chatLocked={me.role === "CAREGIVER"} userName={me.name}>
       <div className="page-title">의료문서함</div>
       <p className="page-sub">등록된 의료문서와 AI 설명을 확인할 수 있어요.</p>
+
+      {me.role !== "CAREGIVER" ? <AiResultDocumentsSection /> : null}
 
       {!caregiverNeedsPatient ? (
         <UploadZone
