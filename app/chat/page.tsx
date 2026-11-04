@@ -12,6 +12,7 @@ import {
   fetchAiChatDetailedDocuments,
   fetchAiChatSessions,
   fetchAiResultDocument,
+  saveAiResultDocument,
   createAiDetailedDocument,
   fetchMedicalDocuments,
   api,
@@ -318,6 +319,9 @@ function ChatContent() {
   async function saveResult(message: AiChatMessage) {
     if (!message.resultDocumentId) return;
     try {
+      // 저장 API가 DRAFT -> SAVED 전환과 첫 상세 문서 생성을 함께 수행한다.
+      await saveAiResultDocument(message.resultDocumentId);
+      // 저장 API 응답에는 상세 문서 ID가 없으므로, 멱등한 상세 조회/생성 API로 ID를 받는다.
       const detailed = await createAiDetailedDocument(message.resultDocumentId);
       setSavedResults((current) => ({ ...current, [message.resultDocumentId!]: true }));
       if (detailed.status === "READY") window.location.assign(`/ai-detailed-documents/${detailed.detailedDocumentId}`);

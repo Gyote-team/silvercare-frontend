@@ -5,7 +5,9 @@ import ChatPage from "./page";
 
 const mocks = vi.hoisted(() => ({
   askAiChat: vi.fn(),
-  fetchAiChatMessages: vi.fn()
+  fetchAiChatMessages: vi.fn(),
+  saveAiResultDocument: vi.fn(),
+  createAiDetailedDocument: vi.fn()
 }));
 
 const patient = { id: "patient-1", name: "환자", role: "PATIENT" };
@@ -29,6 +31,8 @@ vi.mock("@/lib/api", () => ({
   fetchAiChatMessages: mocks.fetchAiChatMessages,
   fetchAiChatSessions: vi.fn(async () => rooms),
   fetchAiResultDocument: vi.fn(),
+  saveAiResultDocument: mocks.saveAiResultDocument,
+  createAiDetailedDocument: mocks.createAiDetailedDocument,
   fetchMedicalDocuments: vi.fn(async () => ({ items: [{ documentId: "doc-1", documentName: "검사 결과", documentStatus: "COMPLETED" }] }))
 }));
 
@@ -57,5 +61,31 @@ describe("채팅방 전환 중 답변 도착", () => {
     expect(screen.getByText("B방 답변")).toBeTruthy();
     expect(screen.queryByText("A방 답변")).toBeNull();
     expect(screen.getByText("B방")).toBeTruthy();
+  });
+
+  it("새 답변을 저장한 뒤 상세 문서 생성을 요청한다", async () => {
+    mocks.fetchAiChatMessages.mockResolvedValue([
+      {
+        messageId: "answer-1",
+        role: "ASSISTANT",
+        content: "검사 결과 답변",
+        createdAt: "2026-10-16T10:01:00Z",
+        resultDocumentId: "result-1"
+      }
+    ]);
+    mocks.saveAiResultDocument.mockResolvedValue({ resultDocumentId: "result-1", saveStatus: "SAVED" });
+    mocks.createAiDetailedDocument.mockResolvedValue({ detailedDocumentId: "detail-1", status: "GENERATING" });
+
+    render(<ChatPage />);
+    fireEvent.click((await screen.findByText("새 채팅", { selector: "strong" })).closest("button")!);
+
+    fireEvent.click(await screen.findByRole("button", { name: "문서로 저장" }));
+
+    await waitFor(() => {
+      expect(mocks.saveAiResultDocument).toHaveBeenCalledWith("result-1");
+      expect(mocks.createAiDetailedDocument).toHaveBeenCalledWith("result-1");
+    });
+    expect(mocks.saveAiResultDocument.mock.invocationCallOrder[0])
+      .toBeLessThan(mocks.createAiDetailedDocument.mock.invocationCallOrder[0]);
   });
 });
