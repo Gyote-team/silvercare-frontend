@@ -19,6 +19,18 @@ beforeEach(() => { mocks.api.mockReset(); sessionStorage.clear(); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("진료 전 요약", () => {
+  it.each([
+    ["AI_OUTPUT_LIMIT", "요약할 내용이 길어 완료하지 못했어요. 기간을 줄여 다시 요청해 주세요."],
+    ["AI_CONTENT_FILTERED", "선택한 기록으로 요약을 만들지 못했어요. 원본 기록을 직접 확인해 주세요."],
+  ])("미완료 원인 %s를 구분하고 부분 요약을 표시하지 않는다", async (code, message) => {
+    sessionStorage.setItem("previsit:person:self", "request-1");
+    mocks.api.mockResolvedValueOnce({ ...operation, jobStatus: "FAILED", summaryId: null, errorCode: code, retryable: false });
+    render(<PrevisitSummaryPanel userId="person" />);
+    expect(await screen.findByText(message)).toBeTruthy();
+    expect(screen.queryByText(detail.summary)).toBeNull();
+    expect(mocks.api).toHaveBeenCalledOnce();
+    expect((screen.getByRole("button", { name: "현재 기록으로 요약 만들기" }) as HTMLButtonElement).disabled).toBe(false);
+  });
   it("대기 중 원본 변경이 확인되면 오래된 요청을 지우고 새로 요청할 수 있다", async () => {
     sessionStorage.setItem("previsit:person:self", "old-request");
     mocks.api.mockResolvedValueOnce({ ...operation, jobStatus: "QUEUED", summaryId: null });

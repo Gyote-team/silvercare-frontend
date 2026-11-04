@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiRequestError } from "@/lib/api";
-import { previsitError, type PrevisitDetail, type PrevisitOperation } from "@/lib/previsit";
+import { previsitError, previsitFailureMessage, type PrevisitDetail, type PrevisitOperation } from "@/lib/previsit";
 
 export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; patientId?: string }) {
   const [days, setDays] = useState(14);
@@ -122,9 +122,7 @@ export function PrevisitSummaryPanel({ userId, patientId }: { userId: string; pa
     </section>}
     {operation?.jobStatus === "FAILED" && <section className="previsit-card" role="alert">
       <strong>요약을 만들지 못했어요</strong>
-      <p>{operation.errorCode === "SOURCE_UNAVAILABLE" ? "연결 상태나 원본 기록이 변경됐어요. 확인 후 새로 요청해 주세요."
-        : operation.errorCode === "AI_API_KEY_MISSING" ? "요약 서비스 설정이 아직 준비되지 않았어요."
-        : "잠시 후 현재 기록으로 다시 요청해 주세요."}</p>
+      <p>{previsitFailureMessage(operation.errorCode)}</p>
     </section>}
     {requestId && <button className="btn" disabled={posting} onClick={() => setReload(n => n + 1)}>요약 상태 다시 불러오기</button>}
     {detail && <section className="previsit-card previsit-result">
