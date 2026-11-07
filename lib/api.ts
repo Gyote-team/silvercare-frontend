@@ -209,7 +209,6 @@ export type AiResultDocument = {
   citationJson: string | null;
   errorMessage: string | null;
 };
-export type AiDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; content: string | null; citationJson: string | null; pdfFileName: string | null; errorMessage: string | null; sourcePreview: string | null; };
 
 export class ApiRequestError extends Error {
   status: number;
@@ -281,8 +280,6 @@ export function createAiChatSession(patientId?: string, title?: string) {
 export function fetchAiChatMessages(sessionId: string) {
   return api<AiChatMessage[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/messages`);
 }
-export type AiChatDetailedDocument = { detailedDocumentId: string; status: "GENERATING" | "READY" | "FAILED"; title: string | null; pdfFileName: string | null; createdAt: string; };
-export function fetchAiChatDetailedDocuments(sessionId: string) { return api<AiChatDetailedDocument[]>(`/api/ai-chat-sessions/${encodeURIComponent(sessionId)}/documents`); }
 
 export function fetchAiResultDocument(resultDocumentId: string) {
   return api<AiResultDocument>(`/api/ai-result-documents/${encodeURIComponent(resultDocumentId)}`);
@@ -295,7 +292,6 @@ export function fetchSavedAiResultDocuments() {
 export function saveAiResultDocument(resultDocumentId: string) {
   return api<AiResultDocument>(`/api/ai-result-documents/${encodeURIComponent(resultDocumentId)}/save`, { method: "POST" });
 }
-export function createAiDetailedDocument(resultDocumentId: string) { return api<AiDetailedDocument>(`/api/ai-detailed-documents/from-result/${encodeURIComponent(resultDocumentId)}`, { method: "POST" }); }
 
 export function askAiChat(
   sessionId: string,
