@@ -6,8 +6,7 @@ import ChatPage from "./page";
 const mocks = vi.hoisted(() => ({
   askAiChat: vi.fn(),
   fetchAiChatMessages: vi.fn(),
-  saveAiResultDocument: vi.fn(),
-  createAiDetailedDocument: vi.fn()
+  saveAiResultDocument: vi.fn()
 }));
 
 const patient = { id: "patient-1", name: "환자", role: "PATIENT" };
@@ -32,7 +31,6 @@ vi.mock("@/lib/api", () => ({
   fetchAiChatSessions: vi.fn(async () => rooms),
   fetchAiResultDocument: vi.fn(),
   saveAiResultDocument: mocks.saveAiResultDocument,
-  createAiDetailedDocument: mocks.createAiDetailedDocument,
   fetchMedicalDocuments: vi.fn(async () => ({ items: [{ documentId: "doc-1", documentName: "검사 결과", documentStatus: "COMPLETED" }] }))
 }));
 
@@ -63,7 +61,7 @@ describe("채팅방 전환 중 답변 도착", () => {
     expect(screen.getByText("B방")).toBeTruthy();
   });
 
-  it("새 답변을 저장한 뒤 상세 문서 생성을 요청한다", async () => {
+  it("새 답변을 일반 문서로 저장한다", async () => {
     mocks.fetchAiChatMessages.mockResolvedValue([
       {
         messageId: "answer-1",
@@ -74,18 +72,14 @@ describe("채팅방 전환 중 답변 도착", () => {
       }
     ]);
     mocks.saveAiResultDocument.mockResolvedValue({ resultDocumentId: "result-1", saveStatus: "SAVED" });
-    mocks.createAiDetailedDocument.mockResolvedValue({ detailedDocumentId: "detail-1", status: "GENERATING" });
 
     render(<ChatPage />);
     fireEvent.click((await screen.findByText("새 채팅", { selector: "strong" })).closest("button")!);
 
     fireEvent.click(await screen.findByRole("button", { name: "문서로 저장" }));
 
-    await waitFor(() => {
-      expect(mocks.saveAiResultDocument).toHaveBeenCalledWith("result-1");
-      expect(mocks.createAiDetailedDocument).toHaveBeenCalledWith("result-1");
-    });
-    expect(mocks.saveAiResultDocument.mock.invocationCallOrder[0])
-      .toBeLessThan(mocks.createAiDetailedDocument.mock.invocationCallOrder[0]);
+    await waitFor(() => expect(mocks.saveAiResultDocument).toHaveBeenCalledWith("result-1"));
+    expect((await screen.findByRole("link", { name: "문서 보기" })).getAttribute("href"))
+      .toBe("/ai-result-documents/result-1");
   });
 });

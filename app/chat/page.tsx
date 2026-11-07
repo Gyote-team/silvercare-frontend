@@ -12,6 +12,7 @@ import {
   fetchAiChatSessions,
   fetchAiResultDocument,
   fetchMedicalDocuments,
+  saveAiResultDocument,
   api,
   type CareRelation,
   type AiResultEvidence,
@@ -87,6 +88,7 @@ function ChatContent() {
   const selectionVersion = useRef(0);
   const [evidence, setEvidence] = useState<Record<string, AiResultEvidence[]>>({});
   const [openEvidence, setOpenEvidence] = useState<string | null>(null);
+  const [savedResults, setSavedResults] = useState<Record<string, boolean>>({});
 
   const selectedCount = selectedDocumentIds.length;
   const hasDocuments = documents.length > 0;
@@ -311,6 +313,16 @@ function ChatContent() {
     }
   }
 
+  async function saveResult(message: AiChatMessage) {
+    if (!message.resultDocumentId) return;
+    try {
+      await saveAiResultDocument(message.resultDocumentId);
+      setSavedResults((current) => ({ ...current, [message.resultDocumentId!]: true }));
+    } catch (reason) {
+      setError(failureMessage(reason));
+    }
+  }
+
   if (meLoading || !me) return <PhoneFrame tab="chat"><p className="page-sub">불러오는 중…</p></PhoneFrame>;
   if (me.role === "CAREGIVER" && patientId && (!relationsLoaded || checkingRelations)) {
     return <PhoneFrame tab="chat"><p className="page-sub">연결 상태를 확인하고 있어요…</p></PhoneFrame>;
@@ -395,6 +407,7 @@ function ChatContent() {
                     <button type="button" className="citation-link" onClick={() => showEvidence(message)}><span aria-hidden="true">⌁</span>{openEvidence === message.messageId ? "원문 근거 닫기" : "답변 근거 확인"}</button>
                     <span className="chat-answer-tools-note">답변은 진료를 대신하지 않아요</span>
                   </div>
+                  <div className="result-save-cta"><span className="result-save-icon" aria-hidden="true">▣</span><span><strong>답변을 내 문서에 보관</strong><small>언제든 문서함에서 다시 확인할 수 있어요</small></span>{savedResults[message.resultDocumentId] ? <Link href={`/ai-result-documents/${message.resultDocumentId}`}>문서 보기</Link> : <button type="button" onClick={() => saveResult(message)}>문서로 저장</button>}</div>
                   {openEvidence === message.messageId ? <div className="chat-evidence-list">
                     {evidence[message.messageId]?.length ? evidence[message.messageId].map((source) => <div key={source.citationId} className="chat-evidence-item">
                       <div><span>원문 근거</span><small>{source.pageNo ? `${source.pageNo}쪽` : "페이지 정보 없음"}</small></div>
