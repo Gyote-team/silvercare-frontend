@@ -46,6 +46,7 @@ function CandidatePageBody() {
   const { me, loading } = useMe();
   return <PhoneFrame tab="home" userName={me?.name} scrollClassName="candidate-screen"><Link className="candidate-back" href="/home">‹ 홈으로</Link>
     <header className="candidate-heading"><span>문서에서 찾은 다음 할 일</span><h1>할 일 후보</h1><p>복약·재진·검사 안내를 원본 근거와 함께 확인해요.<br />후보의 예상 일시는 확정된 일정이 아니에요.</p></header>
+    <Link className="candidate-button" href="/schedules">확정 일정 관리 ›</Link>
     {loading ? <p role="status">불러오는 중…</p> : me ? <CandidateScope key={`${me.id}:${me.role}`} me={me} /> : <p role="alert">계정을 확인하지 못했어요. <Link href="/login">다시 로그인</Link></p>}
   </PhoneFrame>;
 }

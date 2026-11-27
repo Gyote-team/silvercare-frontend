@@ -301,6 +301,7 @@ function HomeBody() {
         <p>확인할 후보와 원본 근거를 살펴보세요. 후보의 예상 일시는 확정된 일정이 아니에요.</p>
         <div className="go">할 일 후보 확인하기 →</div>
       </Link>
+      <Link className="btn-secondary" href="/schedules">확정 일정·반복 복약 관리 ›</Link>
     </PhoneFrame>
   );
 }

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { PhoneFrame } from "./PhoneFrame";
 import { api } from "@/lib/api";
 import { useMe } from "@/lib/useMe";
+import { CandidateActions } from "./CandidateActions";
 import { actionDate, actionError, actionQuery, approvalLabels, typeLabels, type ActionItem, type ApprovalStatus } from "@/lib/actionItems";
 import "@/app/action-items/action-items.css";
 
@@ -32,6 +33,7 @@ export function CandidateContent({ actionItemId, query = "" }: { actionItemId: s
       {item.approvalStatus === "CANCELED" && <p className="candidate-notice">{item.sourceDocumentDeleted || item.cancelReason === "DOCUMENT_DELETED" ? "원본 문서가 삭제되어 취소된 후보예요." : "취소된 후보예요. 연결된 방문과 원본 문서의 상태를 확인해 주세요."}</p>}
       {item.approvalStatus === "PENDING" && <p className="candidate-notice">아직 확인 전인 후보예요. 예상 일시는 확정된 일정이 아니니 원본 안내를 함께 확인해 주세요.</p>}
     </section>
+    <CandidateActions key={`${item.actionItemId}:${item.approvalStatus}:${attempt}`} item={item} onReload={() => setAttempt(value => value + 1)} />
     <section className="candidate-card"><h2>원본 근거</h2>{item.sourceDocumentDeleted ? <p>원본 문서가 삭제되어 문서와 근거를 볼 수 없어요.</p> : <>
       <p>{item.documentName ?? "출처 문서"}</p>
       {item.source ? <blockquote>{item.source.pageNo != null && <span>{item.source.pageNo}페이지</span>}<p>{item.source.sourceText}</p></blockquote> : <p>연결된 원문 근거가 없어요. 출처 문서의 안내를 직접 확인해 주세요.</p>}
