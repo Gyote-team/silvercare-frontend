@@ -113,3 +113,11 @@ it("빈 결과와 404를 구분해서 안내한다", async () => {
   view.rerender(<CandidateContent actionItemId="missing" />);
   expect((await screen.findByRole("alert")).textContent).toContain("찾을 수 없어요");
 });
+
+it("거절된 후보의 공통 처리 시각을 승인일 대신 거절일로 표시한다", async () => {
+  mocks.api.mockResolvedValueOnce({ ...candidate, approvalStatus: "REJECTED", approvedAt: "2026-11-27T02:00:00Z", approvedByUserId: "personal" });
+  render(<CandidateContent actionItemId="one" />);
+  await screen.findByText("거절일");
+  expect(screen.queryByText("승인일")).toBeNull();
+  expect(screen.queryByText("일정 확인하고 승인")).toBeNull();
+});

@@ -29,7 +29,7 @@ export function CandidateContent({ actionItemId, query = "" }: { actionItemId: s
   return <>
     <section className="candidate-card"><div className="candidate-tags"><span className={`candidate-status ${item.approvalStatus.toLowerCase()}`}>{approvalLabels[item.approvalStatus]}</span><span>{typeLabels[item.type]}</span></div>
       <h1>{item.title}</h1>{item.description && <p className="candidate-description">{item.description}</p>}
-      <dl className="candidate-facts"><div><dt>예상 일시</dt><dd>{item.estimatedAt ? actionDate(item.estimatedAt) : "미정"}</dd></div><div><dt>후보 생성일</dt><dd>{actionDate(item.createdAt)}</dd></div>{item.approvedAt && <div><dt>승인일</dt><dd>{actionDate(item.approvedAt)}</dd></div>}</dl>
+      <dl className="candidate-facts"><div><dt>예상 일시</dt><dd>{item.estimatedAt ? actionDate(item.estimatedAt) : "미정"}</dd></div><div><dt>후보 생성일</dt><dd>{actionDate(item.createdAt)}</dd></div>{item.approvedAt && <div><dt>{item.approvalStatus === "REJECTED" ? "거절일" : "승인일"}</dt><dd>{actionDate(item.approvedAt)}</dd></div>}</dl>
       {item.approvalStatus === "CANCELED" && <p className="candidate-notice">{item.sourceDocumentDeleted || item.cancelReason === "DOCUMENT_DELETED" ? "원본 문서가 삭제되어 취소된 후보예요." : "취소된 후보예요. 연결된 방문과 원본 문서의 상태를 확인해 주세요."}</p>}
       {item.approvalStatus === "PENDING" && <p className="candidate-notice">아직 확인 전인 후보예요. 예상 일시는 확정된 일정이 아니니 원본 안내를 함께 확인해 주세요.</p>}
     </section>
