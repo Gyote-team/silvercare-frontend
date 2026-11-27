@@ -94,9 +94,10 @@ export default function AiDocumentDetailPage() {
     : "/documents";
   const requestedReturnTo = searchParams.get("returnTo");
   const returnsToChat = requestedReturnTo?.startsWith("/chat?") ?? false;
-  const backHref = returnsToChat ? requestedReturnTo! : visitHref ?? documentsHref;
+  const returnsToCandidate = /^\/action-items\/[a-f0-9-]{36}(?:\?|$)/i.test(requestedReturnTo ?? "");
+  const backHref = returnsToChat || returnsToCandidate ? requestedReturnTo! : visitHref ?? documentsHref;
   const backLabel = returnsToChat ? "← 채팅으로 돌아가기"
-    : visitHref ? "← 방문 상세로 돌아가기" : "← 문서함";
+    : returnsToCandidate ? "← 할 일 후보로 돌아가기" : visitHref ? "← 방문 상세로 돌아가기" : "← 문서함";
   const [detail, setDetail] = useState<AiDocumentDetailResponse | null>(null);
   const [sections, setSections] = useState<AiDocumentSectionsResponse | null>(null);
   const [status, setStatus] = useState<AiDocumentExplanationStatusResponse | null>(null);
