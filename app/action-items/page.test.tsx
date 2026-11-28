@@ -121,3 +121,18 @@ it("거절된 후보의 공통 처리 시각을 승인일 대신 거절일로 �
   expect(screen.queryByText("승인일")).toBeNull();
   expect(screen.queryByText("일정 확인하고 승인")).toBeNull();
 });
+
+it("더 보기의 일시 오류는 기존 목록을 유지하고 같은 커서로 재시도한다", async () => {
+  mocks.api.mockResolvedValueOnce({ items: [candidate], nextCursor: "same-cursor" }).mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ items: [{ ...candidate, actionItemId: "two", title: "추가 후보" }], nextCursor: null });
+  render(<CandidateList />);
+  await screen.findByText("재진 안내"); fireEvent.click(screen.getByText("후보 더 보기"));
+  await screen.findByText("다음 후보 다시 불러오기"); expect(screen.getByText("재진 안내")).toBeTruthy();
+  fireEvent.click(screen.getByText("다음 후보 다시 불러오기")); await screen.findByText("추가 후보");
+  expect(mocks.api.mock.calls[1][0]).toBe(mocks.api.mock.calls[2][0]); expect(screen.getByText("재진 안내")).toBeTruthy();
+});
+
+it("더 보기 중 권한이 해제되면 이전 목록도 지운다", async () => {
+  mocks.api.mockResolvedValueOnce({ items: [candidate], nextCursor: "cursor" }).mockRejectedValueOnce(new ApiRequestError(403, "revoked"));
+  render(<CandidateList />); await screen.findByText("재진 안내"); fireEvent.click(screen.getByText("후보 더 보기"));
+  await screen.findByRole("alert"); expect(screen.queryByText("재진 안내")).toBeNull();
+});

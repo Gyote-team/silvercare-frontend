@@ -18,6 +18,8 @@ export function fetchSchedules(patientId: string | undefined, page: number, sign
 }
 export function scheduleError(error: unknown) {
   if (error instanceof ApiRequestError) {
+    if (error.code === "SCHEDULE_004") return "후보를 승인해 만든 일정은 종류를 바꿀 수 없어요.";
+    if (error.code === "SCHEDULE_005") return "완료·취소된 일정은 수정하거나 다시 활성화할 수 없어요.";
     if (error.status === 409) return "다른 화면에서 먼저 변경되었어요. 새로 불러온 뒤 다시 확인해 주세요.";
     if (error.status === 403) return "관리 권한이 없어요. 개인과의 연결 상태를 확인해 주세요.";
     if (error.status === 404) return "삭제되었거나 찾을 수 없는 일정이에요. 목록에서 다시 확인해 주세요.";

@@ -76,7 +76,7 @@ it("반복 삭제는 확인과 최신 버전을 포함해 보내고 목록으로
   mocks.api.mockResolvedValueOnce(schedule).mockResolvedValueOnce(undefined);
   render(<ScheduleEditorContent id="schedule" patientId="person" />);
   await screen.findByDisplayValue("아침 복약");
-  fireEvent.click(screen.getByText("일정 삭제")); expect(mocks.api).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByText("일정 취소·삭제")); expect(mocks.api).toHaveBeenCalledTimes(1);
   expect(screen.getByRole("alert").textContent).toContain("반복 일정 전체");
   fireEvent.click(screen.getByText("삭제 확정"));
   await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/schedules?patientId=person"));
@@ -104,4 +104,26 @@ it("일정 목록의 다음 페이지와 대상별 경로를 유지한다", asyn
 
 it("날짜 입력은 실행 브라우저의 시간대와 무관하게 한국 시간으로 표시한다", () => {
   expect(localDateTime("2026-12-01T23:30:00Z")).toBe("2026-12-02T08:30");
+});
+
+it.each([[404, "할 일 후보를 찾을 수"], [409, "이미 처리됐거나"]])("후보 처리 %s 오류는 후보 문맥으로 안내한다", async (status, text) => {
+  mocks.api.mockRejectedValueOnce(new ApiRequestError(status, "error"));
+  render(<CandidateActions item={candidate} onReload={vi.fn()} />);
+  fireEvent.click(screen.getByText("이 후보 거절")); fireEvent.click(screen.getByText("거절 확정"));
+  expect((await screen.findByRole("alert")).textContent).toContain(text);
+  expect(screen.getByRole("alert").textContent).not.toContain("찾을 수 없는 일정");
+});
+
+it("후보에서 승인한 일정은 종류 선택을 숨기고 PUT 취소 옵션을 제공하지 않는다", async () => {
+  mocks.api.mockResolvedValueOnce(schedule); render(<ScheduleEditorContent id="schedule" />);
+  await screen.findByDisplayValue("아침 복약");
+  expect(screen.queryByLabelText("일정 종류")).toBeNull();
+  expect(screen.queryByRole("option", { name: "취소" })).toBeNull();
+  expect(screen.getByText("일정 취소·삭제")).toBeTruthy();
+});
+
+it("완료된 일정은 읽기 전용으로 표시하고 다시 예정으로 수정할 수 없다", async () => {
+  mocks.api.mockResolvedValueOnce({ ...schedule, status: "COMPLETED" }); render(<ScheduleEditorContent id="schedule" />);
+  await screen.findByText("아침 복약"); expect(screen.queryByText("일정 수정 저장")).toBeNull();
+  expect(screen.queryByLabelText("일정 상태")).toBeNull();
 });

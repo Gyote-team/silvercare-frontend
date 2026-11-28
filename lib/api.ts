@@ -213,11 +213,13 @@ export type AiResultDocument = {
 export class ApiRequestError extends Error {
   status: number;
   error: string;
+  code?: string;
 
-  constructor(status: number, error: string) {
+  constructor(status: number, error: string, code?: string) {
     super(error);
     this.status = status;
     this.error = error;
+    this.code = code;
   }
 }
 
@@ -249,7 +251,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   }
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
-    throw new ApiRequestError(response.status, data?.message ?? data?.error ?? data?.code ?? "fail");
+    throw new ApiRequestError(response.status, data?.message ?? data?.error ?? data?.code ?? "fail", data?.code);
   }
   return data as T;
 }

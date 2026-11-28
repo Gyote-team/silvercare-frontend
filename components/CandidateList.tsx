@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ApiRequestError } from "@/lib/api";
 import { actionDate, actionError, actionQuery, approvalLabels, fetchActionItems, typeLabels, type ApprovalStatus, type ActionItemPage } from "@/lib/actionItems";
 
 export function CandidateList({ patientId, status }: { patientId?: string; status?: ApprovalStatus }) {
@@ -9,6 +10,7 @@ export function CandidateList({ patientId, status }: { patientId?: string; statu
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [cursor, setCursor] = useState<string>();
+  const [restart, setRestart] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     setBusy(true); setError("");
@@ -16,13 +18,16 @@ export function CandidateList({ patientId, status }: { patientId?: string; statu
       if (controller.signal.aborted) return;
       setPage(previous => ({ items: cursor ? [...previous.items, ...result.items.filter(item => !previous.items.some(old => old.actionItemId === item.actionItemId))] : result.items, nextCursor: result.nextCursor }));
     }).catch(caught => {
-      if (!controller.signal.aborted) { setError(actionError(caught)); setPage({ items: [], nextCursor: null }); }
+      if (controller.signal.aborted) return;
+      const clear = !cursor || (caught instanceof ApiRequestError && [400, 401, 403, 404].includes(caught.status));
+      setError(actionError(caught)); setRestart(clear);
+      if (clear) setPage({ items: [], nextCursor: null });
     }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => controller.abort();
   }, [patientId, status, cursor, attempt]);
   const query = actionQuery(patientId, status);
   return <section aria-label="할 일 후보 목록" aria-busy={busy}>
-    {error && <div className="candidate-card" role="alert"><p>{error}</p><button className="candidate-button" onClick={() => { setCursor(undefined); setAttempt(value => value + 1); }}>다시 불러오기</button><Link href="/login">로그인으로 이동</Link></div>}
+    {error && <div className="candidate-card" role="alert"><p>{error}</p><button className="candidate-button" onClick={() => { if (restart) setCursor(undefined); setAttempt(value => value + 1); }}>{restart ? "다시 불러오기" : "다음 후보 다시 불러오기"}</button><Link href="/login">로그인으로 이동</Link></div>}
     {!busy && !error && !page.items.length && <div className="candidate-card candidate-empty"><span aria-hidden="true">✓</span><h2>아직 해당하는 후보가 없어요</h2><p>문서에서 생성된 할 일 후보가 있으면 이곳에서 확인할 수 있어요.</p></div>}
     <ul className="candidate-list">{page.items.map(item => <li key={item.actionItemId}><Link className={`candidate-card candidate-link${item.approvalStatus === "CANCELED" ? " is-canceled" : ""}`} href={`/action-items/${encodeURIComponent(item.actionItemId)}${query}`}>
       <div className="candidate-tags"><span className={`candidate-status ${item.approvalStatus.toLowerCase()}`}>{approvalLabels[item.approvalStatus]}</span><span>{typeLabels[item.type]}</span></div>

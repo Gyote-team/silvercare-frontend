@@ -28,6 +28,7 @@ export function ScheduleForm({ initial, lockedType, allowMultiple = false, editi
   }
   return <form className="schedule-form" onSubmit={save}><fieldset disabled={busy}>
     <label>일정 제목<input value={title} onChange={e => setTitle(e.target.value)} maxLength={200} required /></label>
+    {editing && lockedType && <p className="candidate-meta">{scheduleTypes[lockedType]} 일정 · 승인한 후보의 종류를 유지해요.</p>}
     {!lockedType && <label>일정 종류<select value={type} onChange={e => { setType(e.target.value as ScheduleType); setRepeat("NONE"); setExtra([]); }}>{Object.entries(scheduleTypes).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>}
     <p className="candidate-meta">모든 일시는 한국 시간 기준이에요.</p>
     <label>시작 일시<input type="datetime-local" value={start} onChange={e => setStart(e.target.value)} min="2000-01-01T00:00" max="2100-12-31T23:59" required /></label>
@@ -37,8 +38,8 @@ export function ScheduleForm({ initial, lockedType, allowMultiple = false, editi
       {repeat !== "NONE" && <><label>반복 간격 ({repeat === "DAILY" ? "일" : "주"})<input type="number" min={1} max={30} value={interval} onChange={e => setInterval(Number(e.target.value))} required /></label><label>반복 종료일<input type="date" value={until} onChange={e => setUntil(e.target.value)} min={start.slice(0, 10)} required /></label><p className="candidate-meta">시작일부터 최대 1년까지, 종료일을 포함해 반복해요.</p></>}
       {allowMultiple && <>{extra.map((time, index) => <div className="schedule-extra" key={index}><label>추가 복약 시간 {index + 1}<input type="time" value={time} onChange={e => setExtra(values => values.map((value, i) => i === index ? e.target.value : value))} required /></label><button type="button" aria-label={`추가 복약 시간 ${index + 1} 제거`} onClick={() => setExtra(values => values.filter((_, i) => i !== index))}>제거</button></div>)}{extra.length < 7 && <button className="candidate-button" type="button" onClick={() => setExtra(values => [...values, ""])}>+ 복약 시간 추가</button>}<p className="candidate-meta">추가 시간은 같은 시작일과 반복 규칙을 사용해요. 시간대별 일정으로 함께 등록돼요.</p></>}
     </>}
-    {editing && <label>일정 상태<select value={status} onChange={e => setStatus(e.target.value as ScheduleStatus)}>{Object.entries(scheduleStatuses).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>}
-    {editing && repeat !== "NONE" && <p className="candidate-notice">수정·완료·취소·삭제는 이 시간대의 반복 일정 전체에 적용돼요.</p>}
+    {editing && <label>일정 상태<select value={status} onChange={e => setStatus(e.target.value as ScheduleStatus)}>{Object.entries(scheduleStatuses).filter(([key]) => key !== "CANCELLED").map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>}
+    {editing && <p className="candidate-notice">완료 처리 후에는 수정하거나 다시 예정으로 바꿀 수 없어요. 취소는 일정 취소·삭제 버튼을 이용해 주세요.{repeat !== "NONE" && " 수정·완료·삭제는 이 시간대의 반복 전체에 적용돼요."}</p>}
     {error && <p role="alert">{error}</p>}
     <button className="candidate-button schedule-primary" type="submit">{busy ? "처리 중…" : submitLabel}</button>
     {onCancel && <button className="candidate-button" type="button" onClick={onCancel}>수정 취소</button>}

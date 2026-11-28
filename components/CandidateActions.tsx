@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { api, ApiRequestError } from "@/lib/api";
-import type { ActionItem } from "@/lib/actionItems";
+import { actionError, type ActionItem } from "@/lib/actionItems";
 import { scheduleError, scheduleQuery, type ScheduleInput, type ScheduleType } from "@/lib/schedules";
 import { ScheduleForm } from "./ScheduleForm";
 
@@ -23,7 +23,7 @@ export function CandidateActions({ item, onReload }: { item: ActionItem; onReloa
       if (alive.current) onReload();
     } catch (caught) {
       if (!alive.current) return;
-      setError(scheduleError(caught));
+      setError(caught instanceof ApiRequestError && caught.status === 400 ? scheduleError(caught) : actionError(caught, "처리"));
       if (!(caught instanceof ApiRequestError) || caught.status !== 400) setBlocked(true);
     } finally { if (alive.current) setBusy(false); }
   }

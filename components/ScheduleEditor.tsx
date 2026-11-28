@@ -6,7 +6,7 @@ import { PhoneFrame } from "./PhoneFrame";
 import { ScheduleForm } from "./ScheduleForm";
 import { useMe } from "@/lib/useMe";
 import { api, ApiRequestError } from "@/lib/api";
-import { displayScheduleTime, scheduleError, scheduleQuery, type Schedule, type ScheduleInput, type ScheduleStatus } from "@/lib/schedules";
+import { displayScheduleTime, scheduleError, scheduleQuery, scheduleStatuses, scheduleTypes, type Schedule, type ScheduleInput, type ScheduleStatus } from "@/lib/schedules";
 import "@/app/action-items/action-items.css";
 
 export function ScheduleEditorContent({ id, patientId }: { id?: string; patientId?: string }) {
@@ -41,9 +41,9 @@ export function ScheduleEditorContent({ id, patientId }: { id?: string; patientI
     {id && !row && !error && <p role="status">일정을 불러오는 중…</p>}
     {(!id || row) && !blocked && <section className="candidate-card">
       {row?.nextOccurrenceAt && <p className="candidate-notice">다음 일정 · {displayScheduleTime(row.nextOccurrenceAt)}</p>}
-      <ScheduleForm key={`${id ?? "new"}:${row?.version ?? 0}:${attempt}`} initial={row ?? undefined} editing={!!id} busy={busy} submitLabel={id ? "일정 수정 저장" : "일정 등록"} onSave={(inputs, status) => void save(inputs, status)} />
+      {row && row.status !== "SCHEDULED" ? <><h2>{row.title}</h2><p>{scheduleTypes[row.scheduleType]} · {scheduleStatuses[row.status]}</p><p>{displayScheduleTime(row.startsAt)}</p>{row.repeatFrequency !== "NONE" && <p>{row.repeatInterval}{row.repeatFrequency === "DAILY" ? "일" : "주"} 간격 · {row.repeatUntil}까지</p>}<p className="candidate-notice">완료·취소된 일정은 수정하거나 다시 활성화할 수 없어요.</p></> : <ScheduleForm key={`${id ?? "new"}:${row?.version ?? 0}:${attempt}`} initial={row ?? undefined} lockedType={row?.actionItemId ? row.scheduleType : undefined} editing={!!id} busy={busy} submitLabel={id ? "일정 수정 저장" : "일정 등록"} onSave={(inputs, status) => void save(inputs, status)} />}
       {row?.actionItemId && <Link className="candidate-button" href={`/action-items/${encodeURIComponent(row.actionItemId)}${scheduleQuery(patientId)}`}>승인한 원본 후보 보기 ›</Link>}
-      {id && <><button className="candidate-button" disabled={busy} onClick={() => setConfirm(value => !value)}>일정 삭제</button>{confirm && <div><p role="alert">이 시간대의 반복 일정 전체를 삭제할까요? 승인한 후보는 다시 대기로 바뀌지 않아요.</p><button className="candidate-button" disabled={busy} onClick={() => void remove()}>삭제 확정</button><button className="candidate-button" disabled={busy} onClick={() => setConfirm(false)}>삭제 취소</button></div>}</>}
+      {id && <><button className="candidate-button" disabled={busy} onClick={() => setConfirm(value => !value)}>일정 취소·삭제</button>{confirm && <div><p role="alert">이 시간대의 반복 일정 전체를 취소하고 목록에서 삭제할까요? 승인한 후보는 다시 대기로 바뀌지 않아요.</p><button className="candidate-button" disabled={busy} onClick={() => void remove()}>삭제 확정</button><button className="candidate-button" disabled={busy} onClick={() => setConfirm(false)}>삭제 취소</button></div>}</>}
     </section>}
   </>;
 }
