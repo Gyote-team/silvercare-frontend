@@ -1,0 +1,51 @@
+.candidate-screen { padding:24px 20px 40px; color:#294e63; background:linear-gradient(180deg,#edf7fc,#f8fbfd 340px); }
+.candidate-back { display:inline-block; margin-bottom:26px; color:#52758a; text-decoration:none; }
+.candidate-heading { margin-bottom:24px; }
+.candidate-heading > span { font-size:13px; font-weight:700; color:#3e86ac; }
+.candidate-heading h1 { font-size:30px; letter-spacing:-1px; margin:8px 0 12px; }
+.candidate-heading p, .candidate-card p { line-height:1.8; }
+.candidate-heading p { color:#647f91; font-size:14px; }
+.candidate-card { display:block; background:#fff; border:1px solid #dce9f1; border-radius:22px; padding:22px; margin-bottom:16px; overflow-wrap:anywhere; }
+.candidate-card h1 { font-size:24px; line-height:1.5; margin:16px 0; }
+.candidate-card h2 { font-size:19px; line-height:1.6; margin:12px 0; }
+.candidate-card label { display:block; font-weight:700; margin-bottom:12px; }
+.candidate-card select { width:100%; padding:14px; border:1px solid #bcd4e3; border-radius:12px; color:inherit; background:white; font:inherit; }
+.candidate-filters { display:flex; gap:8px; flex-wrap:wrap; margin:24px 0 20px; }
+.candidate-filters a { padding:10px 13px; border-radius:24px; border:1px solid #d4e3ec; background:#fff; color:#55778c; font-size:14px; text-decoration:none; }
+.candidate-filters a[aria-current] { color:#fff; background:#327fac; border-color:#327fac; }
+.candidate-list { list-style:none; margin:0; padding:0; }
+.candidate-link { color:inherit; text-decoration:none; transition:border-color .15s; }
+.candidate-link:hover { border-color:#79adca; }
+.candidate-link h2 { display:flex; justify-content:space-between; gap:16px; }
+.candidate-link h2 > span { color:#7b9caf; }
+.candidate-tags { display:flex; align-items:center; gap:10px; font-size:13px; color:#678396; }
+.candidate-status { padding:5px 10px; border-radius:9px; font-weight:700; }
+.candidate-status.pending { color:#976020; background:#fff1d9; }
+.candidate-status.approved { color:#237564; background:#e1f3ec; }
+.candidate-status.rejected { color:#99535c; background:#fbecef; }
+.candidate-status.canceled { color:#657582; background:#e8edf1; }
+.candidate-link.is-canceled { background:#f0f3f6; border-style:dashed; color:#697d8b; }
+.candidate-preview { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-wrap; }
+.candidate-meta, .candidate-source-name { font-size:13px; color:#6d8799; margin:8px 0 0; }
+.candidate-button { display:block; width:100%; padding:14px 18px; margin:12px 0; border:1px solid #bdd5e4; border-radius:14px; background:white; color:#2b617e; font:inherit; font-weight:600; text-align:center; text-decoration:none; cursor:pointer; }
+.candidate-empty { text-align:center; padding:36px 22px; }
+.candidate-empty > span { font-size:28px; color:#52a1b2; }
+.candidate-description, .candidate-card blockquote p { white-space:pre-wrap; }
+.candidate-facts { border-top:1px solid #e2edf3; padding-top:10px; margin-top:22px; }
+.candidate-facts > div { display:flex; justify-content:space-between; gap:16px; margin:14px 0; font-size:14px; }
+.candidate-facts dt { color:#728a9a; }
+.candidate-facts dd { margin:0; text-align:right; }
+.candidate-notice { background:#f1f7fa; border-radius:12px; padding:14px; color:#5d7b8e; font-size:13px; }
+.candidate-card blockquote { margin:16px 0; padding:16px; border-left:3px solid #8ab9d2; border-radius:0 12px 12px 0; background:#f1f8fc; }
+.candidate-card blockquote > span { color:#4682a2; font-size:13px; font-weight:700; }
+.candidate-screen a:focus-visible, .candidate-screen button:focus-visible, .candidate-screen select:focus-visible { outline:3px solid #277ba8; outline-offset:3px; }
+.schedule-form fieldset { border:0; padding:0; margin:0; min-width:0; }
+.schedule-form label { display:block; margin:16px 0; font-weight:600; }
+.schedule-form input, .schedule-form select { display:block; box-sizing:border-box; width:100%; margin-top:8px; padding:13px 12px; min-height:48px; border:1px solid #bdd5e4; border-radius:12px; font:inherit; color:#294e63; background:#fff; }
+.schedule-primary { background:#327fac; color:white; border-color:#327fac; }
+.candidate-screen button:disabled { opacity:.55; cursor:default; }
+.schedule-extra { display:flex; align-items:center; gap:12px; }
+.schedule-extra label { flex:1; }
+.schedule-extra button { border:0; background:transparent; color:#9a4e58; font:inherit; cursor:pointer; }
+.schedule-toolbar { display:flex; gap:12px; margin:18px 0; flex-wrap:wrap; }
+.schedule-toolbar a { flex:1; }

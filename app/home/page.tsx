@@ -293,23 +293,15 @@ function HomeBody() {
       </Link>
 
       <div className="section-label">
-        <span>오늘 할 일</span>
-        <Link href={documentsHref}>문서함 ›</Link>
+        <span>할 일 후보</span>
+        <Link href="/action-items">전체보기 ›</Link>
       </div>
-      <div className="card" style={{ padding: "6px 16px" }}>
-        <div className="mini-row">
-          <div className="mini-icon">💊</div>
-          <div className="mini-text"><b>복약 안내 확인</b><span>아침·저녁 식후 30분</span></div>
-        </div>
-        <div className="mini-row">
-          <div className="mini-icon">📅</div>
-          <div className="mini-text"><b>10월 15일 재진 일정</b><span>정형외과 · 오전 10시</span></div>
-        </div>
-        <div className="mini-row">
-          <div className="mini-icon">🚶</div>
-          <div className="mini-text"><b>생활 주의사항</b><span>계단 이용 시 난간 이용 권장</span></div>
-        </div>
-      </div>
+      <Link className="summary-preview" href="/action-items">
+        <span className="tag">문서에서 찾은 복약 · 재진 · 검사 안내</span>
+        <p>확인할 후보와 원본 근거를 살펴보세요. 후보의 예상 일시는 확정된 일정이 아니에요.</p>
+        <div className="go">할 일 후보 확인하기 →</div>
+      </Link>
+      <Link className="btn-secondary" href="/schedules">확정 일정·반복 복약 관리 ›</Link>
     </PhoneFrame>
   );
 }
